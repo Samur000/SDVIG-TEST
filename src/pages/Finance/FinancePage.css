@@ -1,0 +1,231 @@
+/* Карточка баланса */
+.balance-card {
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.balance-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.balance-label {
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.balance-total {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.balance-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.balance-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+}
+
+.balance-item svg {
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+}
+
+.balance-item span {
+  flex: 1;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.balance-item strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Аналитика */
+.analytics-section {
+  margin-bottom: 20px;
+}
+
+.analytics-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.analytics-cards {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.analytics-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.analytics-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.analytics-value {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.top-categories {
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.top-categories .analytics-label {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.category-item span:last-child {
+  font-weight: 500;
+}
+
+/* Кнопка добавления */
+.add-transaction-btn {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.add-transaction-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Список транзакций */
+.transactions-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.transactions-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transactions-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  padding-left: 4px;
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.transaction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.transaction-category {
+  font-weight: 500;
+}
+
+.transaction-wallet {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.transaction-comment {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.transaction-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.transaction-amount {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.transaction-amount.income {
+  color: var(--success);
+}
+
+.transaction-amount.expense {
+  color: var(--danger);
+}
+
+.transaction-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+}
+
+.transaction-delete:hover {
+  background: #FEF2F2;
+  color: var(--danger);
+}
+
+.transaction-delete svg {
+  width: 16px;
+  height: 16px;
+}
+
