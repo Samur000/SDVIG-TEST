@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0F766E"/>
+      <stop offset="100%" style="stop-color:#14B8A6"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="180" height="180" rx="38" fill="url(#grad)"/>
+  
+  <!-- Brain outline -->
+  <g fill="none" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M63 120 C42 120 32 99 32 81 C32 56 50 39 70 39 C77 39 83 41 88 44"/>
+    <path d="M46 92 C39 85 40 71 49 63"/>
+    <path d="M56 70 C52 63 56 52 65 49"/>
+    
+    <path d="M117 120 C138 120 148 99 148 81 C148 56 130 39 110 39 C103 39 97 41 92 44"/>
+    <path d="M134 92 C141 85 140 71 131 63"/>
+    <path d="M124 70 C128 63 124 52 115 49"/>
+  </g>
+  
+  <!-- Lightning bolt -->
+  <path d="M98 46 L84 85 L102 85 L81 134 L112 78 L93 78 L109 46 Z" fill="#FCD34D"/>
+  
+  <!-- Sparkles -->
+  <circle cx="53" cy="134" r="4" fill="white" opacity="0.6"/>
+  <circle cx="130" cy="138" r="3" fill="white" opacity="0.5"/>
+</svg>
+
