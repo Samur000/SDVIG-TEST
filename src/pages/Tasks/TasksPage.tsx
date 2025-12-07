@@ -4,7 +4,7 @@ import { Modal } from '../../components/Modal';
 import { Checkbox, EmptyState, useToast } from '../../components/UI';
 import { useApp } from '../../store/AppContext';
 import { Task, Habit } from '../../types';
-import { getTodayLocal, formatDate } from '../../utils/date';
+import { getTodayLocal } from '../../utils/date';
 import { vibrate, getRandomMotivation } from '../../utils/feedback';
 import { v4 as uuid } from 'uuid';
 import { TaskForm } from './TaskForm';
