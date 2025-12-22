@@ -23,6 +23,7 @@ export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCa
   const [date, setDate] = useState(getToday());
   const [comment, setComment] = useState('');
   const amountInputRef = useRef<HTMLInputElement>(null);
+  const [isReadonly, setIsReadonly] = useState(true);
   
   // Определяем iOS устройство
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
@@ -30,57 +31,49 @@ export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCa
   
   // Автофокус на поле суммы при открытии формы (с поддержкой iOS)
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      setIsReadonly(true); // Сбрасываем при закрытии
+      return;
+    }
     
     const focusInput = () => {
       const input = amountInputRef.current;
       if (!input) return;
       
-      // Для iOS используем более агрессивный подход
+      // Для iOS используем трюк с readonly
       if (isIOS) {
-        // iOS Safari требует пользовательского взаимодействия для открытия клавиатуры
-        // Используем несколько попыток с разными методами
-        let attempts = 0;
-        const maxAttempts = 6;
+        // Устанавливаем readonly, чтобы пользователь мог "кликнуть" по полю
+        // Это считается пользовательским взаимодействием
+        setIsReadonly(true);
         
-        const attemptFocus = () => {
-          if (attempts < maxAttempts && input) {
-            attempts++;
-            
-            // Чередуем методы для лучшей совместимости
-            if (attempts % 2 === 0) {
-              input.focus();
-            } else {
-              // Для iOS иногда помогает click перед focus
-              input.click();
-              setTimeout(() => input.focus(), 10);
-            }
-            
-            if (attempts < maxAttempts) {
-              setTimeout(attemptFocus, 80);
-            }
-          }
-        };
-        
-        // Начинаем после задержки для полного открытия модалки
+        // Через небольшую задержку убираем readonly и фокусируем
         setTimeout(() => {
-          attemptFocus();
-        }, 350);
+          setIsReadonly(false);
+          // Используем requestAnimationFrame для гарантии рендера
+          requestAnimationFrame(() => {
+            input.focus();
+            // Устанавливаем курсор
+            if (input.setSelectionRange) {
+              setTimeout(() => {
+                input.setSelectionRange(0, 0);
+              }, 10);
+            }
+          });
+        }, 100);
       } else {
         // Для Android и других устройств
+        setIsReadonly(false);
         setTimeout(() => {
           input.focus();
         }, 150);
       }
     };
     
-    // Используем requestAnimationFrame для синхронизации с рендерингом
-    const rafId = requestAnimationFrame(() => {
-      setTimeout(focusInput, 0);
-    });
+    // Задержка для полного открытия модалки
+    const timeout = setTimeout(focusInput, isIOS ? 300 : 150);
     
     return () => {
-      cancelAnimationFrame(rafId);
+      clearTimeout(timeout);
     };
   }, [isOpen, isIOS]);
   
@@ -137,6 +130,26 @@ export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCa
             inputMode="decimal"
             value={amount}
             onChange={e => setAmount(e.target.value)}
+            onTouchStart={(e) => {
+              // Для iOS: убираем readonly при первом touch (это открывает клавиатуру)
+              if (isIOS && isReadonly) {
+                setIsReadonly(false);
+                // Фокусируем после снятия readonly
+                setTimeout(() => {
+                  e.currentTarget.focus();
+                }, 10);
+              }
+            }}
+            onClick={(e) => {
+              // Для iOS: убираем readonly при клике
+              if (isIOS && isReadonly) {
+                setIsReadonly(false);
+                setTimeout(() => {
+                  e.currentTarget.focus();
+                }, 10);
+              }
+            }}
+            readOnly={isIOS && isReadonly}
             placeholder="0"
             min="0"
             step="0.01"
