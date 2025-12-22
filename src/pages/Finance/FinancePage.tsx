@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Layout } from '../../components/Layout';
 import { Modal } from '../../components/Modal';
 import { EmptyState } from '../../components/UI';
@@ -10,10 +10,22 @@ import moneyCash from '../../components/UI/money-cash.png';
 import moneyCard from '../../components/UI/money-card.png';
 import './FinancePage.css';
 
+const TRANSACTIONS_VISIBILITY_KEY = 'sdvig_finance_transactions_visible';
+
 export function FinancePage() {
   const { state, dispatch } = useApp();
   const [showForm, setShowForm] = useState(false);
-  const [showTransactions, setShowTransactions] = useState(true);
+  
+  // Загружаем сохранённое состояние сворачивания из localStorage
+  const [showTransactions, setShowTransactions] = useState(() => {
+    const saved = localStorage.getItem(TRANSACTIONS_VISIBILITY_KEY);
+    return saved !== null ? saved === 'true' : true; // По умолчанию развёрнуто
+  });
+  
+  // Сохраняем состояние в localStorage при изменении
+  useEffect(() => {
+    localStorage.setItem(TRANSACTIONS_VISIBILITY_KEY, String(showTransactions));
+  }, [showTransactions]);
   
   const totalBalance = useMemo(() => 
     state.wallets.reduce((sum, w) => sum + w.balance, 0),
@@ -255,6 +267,7 @@ export function FinancePage() {
           onSave={handleSaveTransaction}
           onCancel={() => setShowForm(false)}
           onAddCategory={(cat) => dispatch({ type: 'ADD_CATEGORY', payload: cat })}
+          isOpen={showForm}
         />
       </Modal>
     </Layout>

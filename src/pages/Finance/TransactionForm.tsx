@@ -10,9 +10,10 @@ interface TransactionFormProps {
   onSave: (tx: Transaction) => void;
   onCancel: () => void;
   onAddCategory: (category: string) => void;
+  isOpen?: boolean; // Для отслеживания открытия модалки
 }
 
-export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCategory }: TransactionFormProps) {
+export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCategory, isOpen = true }: TransactionFormProps) {
   const [type, setType] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState('');
   const [walletId, setWalletId] = useState(wallets[0]?.id || '');
@@ -23,15 +24,65 @@ export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCa
   const [comment, setComment] = useState('');
   const amountInputRef = useRef<HTMLInputElement>(null);
   
-  // Автофокус на поле суммы при открытии формы
+  // Определяем iOS устройство
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  
+  // Автофокус на поле суммы при открытии формы (с поддержкой iOS)
   useEffect(() => {
-    if (amountInputRef.current) {
-      // Небольшая задержка для корректного открытия модалки
-      setTimeout(() => {
-        amountInputRef.current?.focus();
-      }, 100);
-    }
-  }, []);
+    if (!isOpen) return;
+    
+    const focusInput = () => {
+      const input = amountInputRef.current;
+      if (!input) return;
+      
+      // Для iOS используем более агрессивный подход
+      if (isIOS) {
+        // iOS Safari требует пользовательского взаимодействия для открытия клавиатуры
+        // Используем несколько попыток с разными методами
+        let attempts = 0;
+        const maxAttempts = 6;
+        
+        const attemptFocus = () => {
+          if (attempts < maxAttempts && input) {
+            attempts++;
+            
+            // Чередуем методы для лучшей совместимости
+            if (attempts % 2 === 0) {
+              input.focus();
+            } else {
+              // Для iOS иногда помогает click перед focus
+              input.click();
+              setTimeout(() => input.focus(), 10);
+            }
+            
+            if (attempts < maxAttempts) {
+              setTimeout(attemptFocus, 80);
+            }
+          }
+        };
+        
+        // Начинаем после задержки для полного открытия модалки
+        setTimeout(() => {
+          attemptFocus();
+        }, 350);
+      } else {
+        // Для Android и других устройств
+        setTimeout(() => {
+          input.focus();
+        }, 150);
+      }
+    };
+    
+    // Используем requestAnimationFrame для синхронизации с рендерингом
+    const rafId = requestAnimationFrame(() => {
+      setTimeout(focusInput, 0);
+    });
+    
+    return () => {
+      cancelAnimationFrame(rafId);
+    };
+  }, [isOpen, isIOS]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +134,7 @@ export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCa
           <input
             ref={amountInputRef}
             type="number"
+            inputMode="decimal"
             value={amount}
             onChange={e => setAmount(e.target.value)}
             placeholder="0"
