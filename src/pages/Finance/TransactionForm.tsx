@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Transaction, TransactionType, Wallet } from '../../types';
 import { getToday } from '../../utils/date';
 import { v4 as uuid } from 'uuid';
@@ -21,6 +21,17 @@ export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCa
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [date, setDate] = useState(getToday());
   const [comment, setComment] = useState('');
+  const amountInputRef = useRef<HTMLInputElement>(null);
+  
+  // Автофокус на поле суммы при открытии формы
+  useEffect(() => {
+    if (amountInputRef.current) {
+      // Небольшая задержка для корректного открытия модалки
+      setTimeout(() => {
+        amountInputRef.current?.focus();
+      }, 100);
+    }
+  }, []);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +81,7 @@ export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCa
         <label className="form-label">Сумма</label>
         <div className="amount-input">
           <input
+            ref={amountInputRef}
             type="number"
             value={amount}
             onChange={e => setAmount(e.target.value)}

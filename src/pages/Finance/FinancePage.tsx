@@ -13,6 +13,7 @@ import './FinancePage.css';
 export function FinancePage() {
   const { state, dispatch } = useApp();
   const [showForm, setShowForm] = useState(false);
+  const [showTransactions, setShowTransactions] = useState(true);
   
   const totalBalance = useMemo(() => 
     state.wallets.reduce((sum, w) => sum + w.balance, 0),
@@ -113,7 +114,7 @@ export function FinancePage() {
               <rect x="2" y="6" width="20" height="12" rx="2"/>
               <path d="M12 12h.01"/>
             </svg> */}
-            <img width='30px' height='30px' src={moneyCash} alt="" />
+            <img width='25px' height='25px' src={moneyCash} alt="" />
             {/* <span>Наличные</span> */}
             <strong>{formatMoney(cashBalance)}</strong>
           </div>
@@ -122,7 +123,7 @@ export function FinancePage() {
               <rect x="2" y="4" width="20" height="16" rx="2"/>
               <line x1="2" y1="10" x2="22" y2="10"/>
             </svg> */}
-            <img width='30px' height='30px' src={moneyCard} alt="" />
+            <img width='25px' height='25px' src={moneyCard} alt="" />
             {/* <span>Карты</span> */}
             <strong>{formatMoney(cardBalance)}</strong>
           </div>
@@ -169,53 +170,75 @@ export function FinancePage() {
       
       {/* Список транзакций */}
       <div className="transactions-section">
-        <h3>История операций</h3>
-        
         {sortedTransactions.length === 0 ? (
-          <EmptyState
-            title="Нет операций"
-            text="Добавьте первую операцию"
-            icon={
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="2" y="4" width="20" height="16" rx="2"/>
-                <line x1="2" y1="10" x2="22" y2="10"/>
-              </svg>
-            }
-          />
+          <>
+            <h3>История операций</h3>
+            <EmptyState
+              title="Нет операций"
+              text="Добавьте первую операцию"
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/>
+                  <line x1="2" y1="10" x2="22" y2="10"/>
+                </svg>
+              }
+            />
+          </>
         ) : (
-          <div className="transactions-list">
-            {Object.entries(groupedTransactions)
-              .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
-              .map(([date, txs]) => (
-              <div key={date} className="transactions-group">
-                <div className="transactions-date">{formatDateShort(date)}</div>
-                {txs.map(tx => (
-                  <div key={tx.id} className="transaction-item">
-                    <div className="transaction-info">
-                      <span className="transaction-category">{tx.category}</span>
-                      <span className="transaction-wallet">{getWalletName(tx.walletId)}</span>
-                      {tx.comment && (
-                        <span className="transaction-comment">{tx.comment}</span>
-                      )}
-                    </div>
-                    <div className="transaction-right">
-                      <span className={`transaction-amount ${tx.type}`}>
-                        {tx.type === 'income' ? '+' : '-'}{formatMoney(tx.amount)}
-                      </span>
-                      <button 
-                        className="transaction-delete"
-                        onClick={() => handleDeleteTransaction(tx.id)}
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="18" y1="6" x2="6" y2="18"/>
-                          <line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                      </button>
-                    </div>
+          <div className="archive-section">
+            <button 
+              className="archive-toggle"
+              onClick={() => setShowTransactions(!showTransactions)}
+            >
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+                className={`archive-icon ${showTransactions ? 'open' : ''}`}
+              >
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+              <span>История операций</span>
+              <span className="archive-count">{sortedTransactions.length}</span>
+            </button>
+            
+            {showTransactions && (
+              <div className="transactions-list">
+                {Object.entries(groupedTransactions)
+                  .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
+                  .map(([date, txs]) => (
+                  <div key={date} className="transactions-group">
+                    <div className="transactions-date">{formatDateShort(date)}</div>
+                    {txs.map(tx => (
+                      <div key={tx.id} className="transaction-item">
+                        <div className="transaction-info">
+                          <span className="transaction-category">{tx.category}</span>
+                          <span className="transaction-wallet">{getWalletName(tx.walletId)}</span>
+                          {tx.comment && (
+                            <span className="transaction-comment">{tx.comment}</span>
+                          )}
+                        </div>
+                        <div className="transaction-right">
+                          <span className={`transaction-amount ${tx.type}`}>
+                            {tx.type === 'income' ? '+' : '-'}{formatMoney(tx.amount)}
+                          </span>
+                          <button 
+                            className="transaction-delete"
+                            onClick={() => handleDeleteTransaction(tx.id)}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <line x1="18" y1="6" x2="6" y2="18"/>
+                              <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
