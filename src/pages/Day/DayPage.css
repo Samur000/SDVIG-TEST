@@ -1,0 +1,447 @@
+/* Кнопка календаря в хедере */
+.header-calendar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  color: var(--accent);
+  background: var(--accent-soft);
+  transition: all 0.2s ease;
+}
+
+.header-calendar-btn:hover {
+  background: var(--accent);
+  color: white;
+}
+
+.header-calendar-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Навигация по неделям */
+.week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  touch-action: pan-y;
+}
+
+.week-nav-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.week-nav-arrow:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.week-nav-arrow svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Полоска дней недели */
+.week-strip {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  padding: 4px;
+  background: #F9FAFB;
+  border-radius: var(--radius-lg);
+  touch-action: pan-y;
+}
+
+[data-theme="dark"] .week-strip {
+  background: var(--bg-secondary);
+}
+
+.week-day {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px 12px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--muted);
+  transition: all 0.2s ease;
+}
+
+.week-day:hover {
+  background: var(--bg);
+}
+
+.week-day.selected {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.week-day.today .week-day-num {
+  font-weight: 700;
+}
+
+.week-day-name {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.week-day-num {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Индикатор событий под датой */
+.week-day-dot {
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.week-day.selected .week-day-dot {
+  background: var(--accent);
+}
+
+/* Индикатор "сегодня" для неактивного дня */
+.week-day-today-mark {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+/* Кнопка "Сегодня" */
+.today-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+  animation: fadeIn 0.2s ease;
+}
+
+.today-chip:hover {
+  background: var(--accent);
+  color: white;
+}
+
+.today-chip svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Контент дня (для свайпа) */
+.day-content {
+  touch-action: pan-y;
+}
+
+/* Карточка 3 главных задач */
+.day-tasks-card {
+  margin-bottom: 24px;
+  padding: 20px;
+}
+
+.day-tasks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.day-tasks-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.day-tasks-counter {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+.day-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.day-task-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+}
+
+.day-task-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-task-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.day-task-item:hover .day-task-actions {
+  opacity: 1;
+}
+
+/* Показывать действия на мобильных устройствах */
+@media (max-width: 768px) {
+  .day-task-actions {
+    opacity: 1;
+  }
+}
+
+.btn-icon-mini {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  transition: all 0.2s ease;
+}
+
+.btn-icon-mini:hover {
+  background: #F3F4F6;
+  color: var(--text);
+}
+
+[data-theme="dark"] .btn-icon-mini:hover {
+  background: var(--bg-secondary);
+}
+
+.btn-icon-mini.text-danger:hover {
+  background: #FEF2F2;
+  color: var(--danger);
+}
+
+[data-theme="dark"] .btn-icon-mini.text-danger:hover {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.btn-icon-mini svg {
+  width: 14px;
+  height: 14px;
+}
+
+.day-task-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-md);
+  background: transparent;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.day-task-add:hover {
+  opacity: 1;
+}
+
+.day-task-add svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Расписание */
+.schedule-section {
+  margin-top: 24px;
+}
+
+.schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.schedule-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.schedule-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.schedule-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.schedule-item-time {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 50px;
+  padding-top: 2px;
+}
+
+.schedule-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.schedule-item-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.schedule-item-main span:not(.chip) {
+  flex: 1;
+  font-weight: 500;
+}
+
+.chip-sm {
+  font-size: 10px;
+  padding: 3px 8px;
+}
+
+.schedule-item-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.schedule-item-actions .btn-icon {
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+}
+
+.schedule-item-actions .btn-icon:hover {
+  background: #F3F4F6;
+  color: var(--text);
+}
+
+[data-theme="dark"] .schedule-item-actions .btn-icon:hover {
+  background: var(--bg-secondary);
+}
+
+.schedule-item-actions .btn-icon.text-danger:hover {
+  color: var(--danger);
+  background: #FEF2F2;
+}
+
+[data-theme="dark"] .schedule-item-actions .btn-icon.text-danger:hover {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.schedule-item-actions svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Анимация свайпа */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Пустое состояние для недели */
+.empty-week {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-week-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.empty-week-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.empty-week-text {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}

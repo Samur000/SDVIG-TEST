@@ -1,0 +1,108 @@
+.transaction-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Type toggle */
+.type-toggle {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background: #F3F4F6;
+  border-radius: var(--radius-full);
+}
+
+.type-btn {
+  flex: 1;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+}
+
+.type-btn.active {
+  background: var(--bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.type-btn.active.expense {
+  color: var(--danger);
+}
+
+.type-btn.active.income {
+  color: var(--success);
+}
+
+/* Amount input */
+.amount-input {
+  position: relative;
+}
+
+.amount-input input {
+  font-size: 24px;
+  font-weight: 600;
+  padding-right: 40px;
+}
+
+.amount-currency {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Category select */
+.category-select {
+  display: flex;
+  gap: 8px;
+}
+
+.category-select select,
+.category-select input {
+  flex: 1;
+}
+
+.add-category-btn {
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+}
+
+.add-category-btn:hover {
+  background: var(--accent-soft);
+}
+
+/* Form */
+.transaction-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transaction-form .form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.transaction-form .form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.transaction-form .form-actions .btn {
+  flex: 1;
+  justify-content: center;
+}
+

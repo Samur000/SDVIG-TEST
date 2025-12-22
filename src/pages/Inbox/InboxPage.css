@@ -1,0 +1,150 @@
+.inbox-intro {
+  margin-bottom: 20px;
+}
+
+.inbox-intro p {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* Форма ввода */
+.inbox-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.inbox-form textarea {
+  min-height: 100px;
+  resize: none;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.inbox-form .btn {
+  align-self: flex-end;
+}
+
+/* Секция идей */
+.ideas-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.ideas-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.idea-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 10px 14px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.idea-chip:hover {
+  background: #B8E8E1;
+}
+
+.idea-text {
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.idea-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  color: var(--accent);
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.idea-delete:hover {
+  opacity: 1;
+}
+
+.idea-delete svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Модалка действий */
+.idea-actions-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.idea-preview {
+  padding: 16px;
+  background: #F9FAFB;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.idea-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.idea-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+}
+
+.idea-action-btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.idea-action-btn svg {
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+}
+
+.idea-action-btn.danger {
+  color: var(--danger);
+}
+
+.idea-action-btn.danger:hover {
+  border-color: var(--danger);
+  background: #FEF2F2;
+}
+
+.idea-action-btn.danger svg {
+  color: var(--danger);
+
+}
+
+

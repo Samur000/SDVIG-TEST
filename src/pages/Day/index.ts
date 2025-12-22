@@ -1,0 +1,2 @@
+export { DayPage } from './DayPage';
+

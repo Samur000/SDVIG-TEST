@@ -1,0 +1,187 @@
+.focus-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.3s ease;
+}
+
+.focus-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 20px;
+}
+
+.focus-close {
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  color: var(--muted);
+}
+
+.focus-close:hover {
+  background: #F3F4F6;
+  color: var(--text);
+}
+
+.focus-close svg {
+  width: 24px;
+  height: 24px;
+}
+
+.focus-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-bottom: 60px;
+}
+
+.focus-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 40px;
+  max-width: 280px;
+}
+
+.focus-timer {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin-bottom: 32px;
+}
+
+.focus-progress {
+  width: 100%;
+  height: 100%;
+}
+
+.focus-progress-bg {
+  stroke: var(--border);
+}
+
+.focus-progress-fill {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.focus-time {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.focus-presets {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.focus-preset {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.focus-preset:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.focus-preset.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.focus-preset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.focus-controls {
+  display: flex;
+  gap: 12px;
+}
+
+.focus-controls .btn {
+  min-width: 120px;
+}
+
+.focus-controls svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Finished state */
+.focus-finished {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.focus-finished-icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  border-radius: var(--radius-full);
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+
+.focus-finished-icon svg {
+  width: 48px;
+  height: 48px;
+}
+
+.focus-finished-text {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.focus-finished-question {
+  font-size: 16px;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+
+.focus-finished-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.focus-finished-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
