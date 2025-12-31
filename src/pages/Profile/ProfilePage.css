@@ -739,6 +739,15 @@
   flex-shrink: 0;
 }
 
+/* Мобильная версия - уменьшенные radio кнопки */
+@media (max-width: 768px) {
+  .start-page-option input[type="radio"] {
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+  }
+}
+
 .start-page-option .option-content {
   display: flex;
   flex-direction: column;
