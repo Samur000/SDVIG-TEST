@@ -48,28 +48,30 @@ export function SettingsPage() {
     dispatch({ type: 'SET_THEME', payload: theme });
   };
   
-  // Настройки стартовой страницы
-  const startPageMode = state.settings?.startPageMode || 'default';
-  const customStartPage = state.settings?.customStartPage || '/';
-  
-  const handleStartPageModeChange = (mode: StartPageMode) => {
-    dispatch({ type: 'SET_START_PAGE_MODE', payload: mode });
-  };
-  
-  const handleCustomStartPageChange = (page: AppPage) => {
-    dispatch({ type: 'SET_CUSTOM_START_PAGE', payload: page });
-  };
+  // Настройки стартовой страницы (сохранённые значения)
+  const savedStartPageMode = state.settings?.startPageMode || 'default';
+  const savedCustomStartPage = state.settings?.customStartPage || '/';
   
   // Состояние Action Sheet для стартовой страницы
   const [showStartPageSheet, setShowStartPageSheet] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   
-  // Получить текст текущего выбора стартовой страницы
+  // Временные значения для редактирования (до сохранения)
+  const [tempStartPageMode, setTempStartPageMode] = useState<StartPageMode>(savedStartPageMode);
+  const [tempCustomStartPage, setTempCustomStartPage] = useState<AppPage>(savedCustomStartPage);
+  
+  // Проверка наличия изменений
+  const hasStartPageChanges = 
+    tempStartPageMode !== savedStartPageMode || 
+    (tempStartPageMode === 'custom' && tempCustomStartPage !== savedCustomStartPage);
+  
+  // Получить текст текущего выбора стартовой страницы (из сохранённых)
   const getStartPageLabel = (): string => {
-    switch (startPageMode) {
+    switch (savedStartPageMode) {
       case 'last':
         return 'Последняя открытая';
       case 'custom':
-        const pageLabel = PAGE_OPTIONS.find(p => p.value === customStartPage)?.label || 'День';
+        const pageLabel = PAGE_OPTIONS.find(p => p.value === savedCustomStartPage)?.label || 'День';
         return pageLabel;
       case 'default':
       default:
@@ -77,9 +79,42 @@ export function SettingsPage() {
     }
   };
   
-  // Закрыть Action Sheet
-  const closeStartPageSheet = () => {
+  // Открыть Action Sheet
+  const openStartPageSheet = () => {
+    // Сбросить временные значения к сохранённым
+    setTempStartPageMode(savedStartPageMode);
+    setTempCustomStartPage(savedCustomStartPage);
+    setShowStartPageSheet(true);
+  };
+  
+  // Сохранить изменения
+  const saveStartPageChanges = () => {
+    dispatch({ type: 'SET_START_PAGE_MODE', payload: tempStartPageMode });
+    if (tempStartPageMode === 'custom') {
+      dispatch({ type: 'SET_CUSTOM_START_PAGE', payload: tempCustomStartPage });
+    }
     setShowStartPageSheet(false);
+  };
+  
+  // Попытка закрыть Action Sheet
+  const tryCloseStartPageSheet = () => {
+    if (hasStartPageChanges) {
+      setShowDiscardConfirm(true);
+    } else {
+      setShowStartPageSheet(false);
+    }
+  };
+  
+  // Закрыть без сохранения
+  const discardAndClose = () => {
+    setShowDiscardConfirm(false);
+    setShowStartPageSheet(false);
+  };
+  
+  // Сохранить и закрыть (из диалога подтверждения)
+  const saveAndClose = () => {
+    saveStartPageChanges();
+    setShowDiscardConfirm(false);
   };
   
   // Открыть модалку редактирования профиля
@@ -314,7 +349,7 @@ export function SettingsPage() {
         <div className="settings-list">
           <button 
             className="settings-item start-page-row"
-            onClick={() => setShowStartPageSheet(true)}
+            onClick={openStartPageSheet}
           >
             <span className="settings-item-title">Стартовая страница</span>
             <div className="start-page-value">
@@ -329,25 +364,32 @@ export function SettingsPage() {
       
       {/* Action Sheet для выбора стартовой страницы */}
       {showStartPageSheet && (
-        <div className="action-sheet-overlay" onClick={closeStartPageSheet}>
+        <div className="action-sheet-overlay" onClick={tryCloseStartPageSheet}>
           <div className="action-sheet" onClick={e => e.stopPropagation()}>
             <div className="action-sheet-header">
               <h3>Стартовая страница</h3>
-              <button className="action-sheet-close" onClick={closeStartPageSheet}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
+              <div className="action-sheet-header-actions">
+                {hasStartPageChanges && (
+                  <button className="btn btn-sm btn-primary" onClick={saveStartPageChanges}>
+                    Сохранить
+                  </button>
+                )}
+                <button className="action-sheet-close" onClick={tryCloseStartPageSheet}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
             </div>
             
             <div className="action-sheet-content">
-              <label className={`action-sheet-option ${startPageMode === 'default' ? 'active' : ''}`}>
+              <label className={`action-sheet-option ${tempStartPageMode === 'default' ? 'active' : ''}`}>
                 <input
                   type="radio"
                   name="startPageMode"
-                  checked={startPageMode === 'default'}
-                  onChange={() => handleStartPageModeChange('default')}
+                  checked={tempStartPageMode === 'default'}
+                  onChange={() => setTempStartPageMode('default')}
                 />
                 <div className="option-content">
                   <span className="option-title">По умолчанию</span>
@@ -355,12 +397,12 @@ export function SettingsPage() {
                 </div>
               </label>
               
-              <label className={`action-sheet-option ${startPageMode === 'last' ? 'active' : ''}`}>
+              <label className={`action-sheet-option ${tempStartPageMode === 'last' ? 'active' : ''}`}>
                 <input
                   type="radio"
                   name="startPageMode"
-                  checked={startPageMode === 'last'}
-                  onChange={() => handleStartPageModeChange('last')}
+                  checked={tempStartPageMode === 'last'}
+                  onChange={() => setTempStartPageMode('last')}
                 />
                 <div className="option-content">
                   <span className="option-title">Последняя открытая</span>
@@ -368,12 +410,12 @@ export function SettingsPage() {
                 </div>
               </label>
               
-              <label className={`action-sheet-option ${startPageMode === 'custom' ? 'active' : ''}`}>
+              <label className={`action-sheet-option ${tempStartPageMode === 'custom' ? 'active' : ''}`}>
                 <input
                   type="radio"
                   name="startPageMode"
-                  checked={startPageMode === 'custom'}
-                  onChange={() => handleStartPageModeChange('custom')}
+                  checked={tempStartPageMode === 'custom'}
+                  onChange={() => setTempStartPageMode('custom')}
                 />
                 <div className="option-content">
                   <span className="option-title">Выбранная страница</span>
@@ -382,21 +424,21 @@ export function SettingsPage() {
               </label>
               
               {/* Выбор конкретной страницы */}
-              {startPageMode === 'custom' && (
+              {tempStartPageMode === 'custom' && (
                 <div className="page-select-list">
                   {PAGE_OPTIONS.map(opt => (
                     <label 
                       key={opt.value} 
-                      className={`page-select-option ${customStartPage === opt.value ? 'active' : ''}`}
+                      className={`page-select-option ${tempCustomStartPage === opt.value ? 'active' : ''}`}
                     >
                       <input
                         type="radio"
                         name="customStartPage"
-                        checked={customStartPage === opt.value}
-                        onChange={() => handleCustomStartPageChange(opt.value)}
+                        checked={tempCustomStartPage === opt.value}
+                        onChange={() => setTempCustomStartPage(opt.value)}
                       />
                       <span>{opt.label}</span>
-                      {customStartPage === opt.value && (
+                      {tempCustomStartPage === opt.value && (
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
@@ -405,6 +447,24 @@ export function SettingsPage() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Модальное окно подтверждения */}
+      {showDiscardConfirm && (
+        <div className="action-sheet-overlay" onClick={() => setShowDiscardConfirm(false)}>
+          <div className="discard-confirm-modal" onClick={e => e.stopPropagation()}>
+            <h3>Сохранить изменения?</h3>
+            <p>У вас есть несохранённые изменения настроек стартовой страницы.</p>
+            <div className="discard-confirm-actions">
+              <button className="btn" onClick={discardAndClose}>
+                Не сохранять
+              </button>
+              <button className="btn btn-primary filled" onClick={saveAndClose}>
+                Сохранить
+              </button>
             </div>
           </div>
         </div>

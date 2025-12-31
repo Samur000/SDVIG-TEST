@@ -757,6 +757,12 @@
   margin: 0;
 }
 
+.action-sheet-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .action-sheet-close {
   display: flex;
   align-items: center;
@@ -820,9 +826,9 @@
 /* Мобильная версия - уменьшенные radio кнопки */
 @media (max-width: 768px) {
   .action-sheet-option input[type="radio"] {
-    width: 12px;
-    height: 12px;
-    margin-top: 3px;
+    width: 6px;
+    height: 6px;
+    margin-top: 5px;
   }
 }
 
@@ -894,5 +900,55 @@
   height: 18px;
   margin-left: auto;
   color: var(--accent);
+}
+
+/* Discard confirm modal */
+.discard-confirm-modal {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  width: calc(100% - 40px);
+  max-width: 340px;
+  background: var(--bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  text-align: center;
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 50%) scale(1);
+  }
+}
+
+.discard-confirm-modal h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px 0;
+}
+
+.discard-confirm-modal p {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.discard-confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.discard-confirm-actions .btn {
+  flex: 1;
 }
 
