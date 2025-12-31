@@ -10,13 +10,22 @@ import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { Modal } from '../../components/Modal';
 import { useApp } from '../../store/AppContext';
-import { Theme, initialState, AppState, Profile } from '../../types';
+import { Theme, initialState, AppState, Profile, StartPageMode, AppPage } from '../../types';
 import { exportAllData, importAllData } from '../../store/indexedDB';
 import './ProfilePage.css';
 
 type ModalType = 'export' | 'import' | 'profile' | null;
 
 const GOAL_SUGGESTIONS = ['Здоровье', 'Финансы', 'Развитие', 'Отношения', 'Карьера', 'Хобби'];
+
+// Названия страниц для выбора
+const PAGE_OPTIONS: { value: AppPage; label: string }[] = [
+  { value: '/', label: 'День' },
+  { value: '/finance', label: 'Финансы' },
+  { value: '/tasks', label: 'Дела' },
+  { value: '/inbox', label: 'Инбокс' },
+  { value: '/profile', label: 'Я' },
+];
 
 export function SettingsPage() {
   const { state, dispatch } = useApp();
@@ -37,6 +46,35 @@ export function SettingsPage() {
   // Переключение темы
   const handleThemeChange = (theme: Theme) => {
     dispatch({ type: 'SET_THEME', payload: theme });
+  };
+  
+  // Настройки стартовой страницы
+  const startPageMode = state.settings?.startPageMode || 'default';
+  const customStartPage = state.settings?.customStartPage || '/';
+  
+  const handleStartPageModeChange = (mode: StartPageMode) => {
+    dispatch({ type: 'SET_START_PAGE_MODE', payload: mode });
+  };
+  
+  const handleCustomStartPageChange = (page: AppPage) => {
+    dispatch({ type: 'SET_CUSTOM_START_PAGE', payload: page });
+  };
+  
+  // Состояние раскрытия секции стартовой страницы
+  const [isStartPageExpanded, setIsStartPageExpanded] = useState(false);
+  
+  // Получить текст текущего выбора стартовой страницы
+  const getStartPageLabel = (): string => {
+    switch (startPageMode) {
+      case 'last':
+        return 'Последняя открытая';
+      case 'custom':
+        const pageLabel = PAGE_OPTIONS.find(p => p.value === customStartPage)?.label || 'День';
+        return pageLabel;
+      case 'default':
+      default:
+        return 'День';
+    }
   };
   
   // Открыть модалку редактирования профиля
@@ -262,6 +300,103 @@ export function SettingsPage() {
               Изменить
             </button>
           </div>
+        </div>
+      </div>
+      
+      {/* Навигация / Запуск */}
+      <div className="settings-section">
+        <h3>Запуск</h3>
+        <div className="settings-list">
+          <button 
+            className={`settings-item start-page-toggle ${isStartPageExpanded ? 'expanded' : ''}`}
+            onClick={() => setIsStartPageExpanded(!isStartPageExpanded)}
+          >
+            <div className="settings-item-info">
+              <span className="settings-item-title">Стартовая страница</span>
+              <span className="settings-item-desc">{getStartPageLabel()}</span>
+            </div>
+            <svg 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+              className={`start-page-chevron ${isStartPageExpanded ? 'open' : ''}`}
+            >
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          
+          {/* Варианты выбора */}
+          {isStartPageExpanded && (
+            <div className="start-page-options">
+              <label className={`start-page-option ${startPageMode === 'default' ? 'active' : ''}`}>
+                <input
+                  type="radio"
+                  name="startPageMode"
+                  value="default"
+                  checked={startPageMode === 'default'}
+                  onChange={() => handleStartPageModeChange('default')}
+                />
+                <div className="option-content">
+                  <span className="option-title">По умолчанию</span>
+                  <span className="option-desc">Всегда открывать «День»</span>
+                </div>
+              </label>
+              
+              <label className={`start-page-option ${startPageMode === 'last' ? 'active' : ''}`}>
+                <input
+                  type="radio"
+                  name="startPageMode"
+                  value="last"
+                  checked={startPageMode === 'last'}
+                  onChange={() => handleStartPageModeChange('last')}
+                />
+                <div className="option-content">
+                  <span className="option-title">Последняя открытая</span>
+                  <span className="option-desc">Восстанавливать последний раздел</span>
+                </div>
+              </label>
+              
+              <label className={`start-page-option ${startPageMode === 'custom' ? 'active' : ''}`}>
+                <input
+                  type="radio"
+                  name="startPageMode"
+                  value="custom"
+                  checked={startPageMode === 'custom'}
+                  onChange={() => handleStartPageModeChange('custom')}
+                />
+                <div className="option-content">
+                  <span className="option-title">Выбранная страница</span>
+                  <span className="option-desc">Всегда открывать определённый раздел</span>
+                </div>
+              </label>
+              
+              {/* Выбор конкретной страницы */}
+              {startPageMode === 'custom' && (
+                <div className="custom-page-select">
+                  <select
+                    value={customStartPage}
+                    onChange={(e) => handleCustomStartPageChange(e.target.value as AppPage)}
+                  >
+                    {PAGE_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <svg 
+                    className="custom-select-arrow"
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2"
+                  >
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
       

@@ -166,20 +166,40 @@ export function TasksPage() {
   };
   
   const handleBreakdown = (task: Task, subtasks: string[]) => {
-    subtasks.forEach(title => {
+    const existingSubtasks = getSubtasks(task.id);
+    const validSubtasks = subtasks.filter(s => s.trim());
+    
+    // Создаём карту существующих подзадач по названию для сохранения статуса выполнения
+    const existingMap = new Map<string, Task>();
+    existingSubtasks.forEach(st => {
+      existingMap.set(st.title, st);
+    });
+    
+    // Удаляем все существующие подзадачи
+    existingSubtasks.forEach(subtask => {
+      dispatch({ type: 'DELETE_TASK', payload: subtask.id });
+    });
+    
+    // Создаём новые подзадачи, сохраняя статус выполнения если название совпадает
+    validSubtasks.forEach(title => {
+      const trimmedTitle = title.trim();
+      const existing = existingMap.get(trimmedTitle);
+      
       dispatch({
         type: 'ADD_TASK',
         payload: {
           id: uuid(),
-          title,
-          completed: false,
+          title: trimmedTitle,
+          completed: existing?.completed || false,
           date: task.date,
           priority: 'normal',
           parentId: task.id,
-          createdAt: new Date().toISOString()
+          createdAt: existing?.createdAt || new Date().toISOString(),
+          completedAt: existing?.completedAt
         }
       });
     });
+    
     setBreakdownTask(null);
   };
   
@@ -442,6 +462,7 @@ export function TasksPage() {
       {breakdownTask && (
         <BreakdownModal
           task={breakdownTask}
+          existingSubtasks={getSubtasks(breakdownTask.id)}
           onSave={handleBreakdown}
           onClose={() => setBreakdownTask(null)}
         />

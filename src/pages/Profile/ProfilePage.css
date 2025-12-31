@@ -372,6 +372,7 @@
 .settings-item-title {
   font-weight: 500;
   display: block;
+  color: var(--text);
 }
 
 .settings-item-desc {
@@ -674,5 +675,135 @@
   color: var(--muted);
   margin-top: 4px;
   opacity: 0.7;
+}
+
+/* Start page toggle */
+.start-page-toggle {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.start-page-toggle:hover {
+  border-color: var(--accent);
+}
+
+.start-page-chevron {
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.start-page-chevron.open {
+  transform: rotate(180deg);
+}
+
+.start-page-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.start-page-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.start-page-option:hover {
+  border-color: var(--accent);
+}
+
+.start-page-option.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.start-page-option input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  margin-top: 2px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.start-page-option .option-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.start-page-option .option-title {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.start-page-option .option-desc {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.custom-page-select {
+  margin-top: 4px;
+  padding-left: 30px;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.custom-page-select select {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  background-image: none !important;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  /* Убираем нативную стрелку в Firefox */
+  text-indent: 0.01px;
+  text-overflow: '';
+}
+
+.custom-page-select select::-ms-expand {
+  display: none !important; /* Убираем нативную стрелку в IE/Edge */
+}
+
+.custom-page-select select:hover,
+.custom-page-select select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* Кастомная стрелка для select */
+.custom-select-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  pointer-events: none;
+  z-index: 10;
 }
 

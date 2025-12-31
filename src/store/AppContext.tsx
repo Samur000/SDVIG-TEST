@@ -20,7 +20,10 @@ import {
   Profile, 
   Document,
   FocusSession,
-  Theme
+  Theme,
+  StartPageMode,
+  AppPage,
+  Settings
 } from '../types';
 import { initStorage, saveStateAsync } from './storage';
 
@@ -85,6 +88,10 @@ type Action =
   | { type: 'ADD_FOCUS_SESSION'; payload: FocusSession }
   // Настройки
   | { type: 'SET_THEME'; payload: Theme }
+  | { type: 'SET_START_PAGE_MODE'; payload: StartPageMode }
+  | { type: 'SET_CUSTOM_START_PAGE'; payload: AppPage }
+  | { type: 'SET_LAST_VISITED_PAGE'; payload: string }
+  | { type: 'UPDATE_SETTINGS'; payload: Partial<Settings> }
   // Общее
   | { type: 'LOAD_STATE'; payload: AppState };
 
@@ -419,6 +426,14 @@ function reducer(state: AppState, action: Action): AppState {
     // Настройки
     case 'SET_THEME':
       return { ...state, settings: { ...state.settings, theme: action.payload } };
+    case 'SET_START_PAGE_MODE':
+      return { ...state, settings: { ...state.settings, startPageMode: action.payload } };
+    case 'SET_CUSTOM_START_PAGE':
+      return { ...state, settings: { ...state.settings, customStartPage: action.payload } };
+    case 'SET_LAST_VISITED_PAGE':
+      return { ...state, settings: { ...state.settings, lastVisitedPage: action.payload } };
+    case 'UPDATE_SETTINGS':
+      return { ...state, settings: { ...state.settings, ...action.payload } };
 
     // Общее
     case 'LOAD_STATE':

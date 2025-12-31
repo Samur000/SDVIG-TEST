@@ -109,8 +109,17 @@ export interface Profile {
 // ============ Настройки ============
 export type Theme = 'light' | 'dark';
 
+// Режим стартовой страницы
+export type StartPageMode = 'default' | 'last' | 'custom';
+
+// Доступные страницы для выбора
+export type AppPage = '/' | '/finance' | '/tasks' | '/inbox' | '/profile';
+
 export interface Settings {
   theme: Theme;
+  startPageMode?: StartPageMode;
+  customStartPage?: AppPage;
+  lastVisitedPage?: string; // Для режима "последняя открытая"
 }
 
 // ============ Документы ============

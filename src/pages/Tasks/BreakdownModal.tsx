@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/Modal';
 import { Task } from '../../types';
 import './Forms.css';
 
 interface BreakdownModalProps {
   task: Task;
+  existingSubtasks?: Task[];
   onSave: (task: Task, subtasks: string[]) => void;
   onClose: () => void;
 }
 
-export function BreakdownModal({ task, onSave, onClose }: BreakdownModalProps) {
-  const [subtasks, setSubtasks] = useState<string[]>(['']);
+export function BreakdownModal({ task, existingSubtasks = [], onSave, onClose }: BreakdownModalProps) {
+  const [subtasks, setSubtasks] = useState<string[]>([]);
+  
+  // Загружаем существующие подзадачи при открытии модального окна
+  useEffect(() => {
+    if (existingSubtasks.length > 0) {
+      setSubtasks(existingSubtasks.map(st => st.title));
+    } else {
+      setSubtasks(['']);
+    }
+  }, [existingSubtasks]);
   
   const handleChange = (index: number, value: string) => {
     const newSubtasks = [...subtasks];
@@ -23,9 +33,9 @@ export function BreakdownModal({ task, onSave, onClose }: BreakdownModalProps) {
   };
   
   const handleRemoveSubtask = (index: number) => {
-    if (subtasks.length <= 1) return;
     const newSubtasks = subtasks.filter((_, i) => i !== index);
-    setSubtasks(newSubtasks);
+    // Если удалили все, оставляем одно пустое поле
+    setSubtasks(newSubtasks.length > 0 ? newSubtasks : ['']);
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,18 +67,17 @@ export function BreakdownModal({ task, onSave, onClose }: BreakdownModalProps) {
                 placeholder={`Шаг ${index + 1}`}
                 autoFocus={index === subtasks.length - 1}
               />
-              {subtasks.length > 1 && (
-                <button 
-                  type="button" 
-                  className="subtask-remove-btn"
-                  onClick={() => handleRemoveSubtask(index)}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-              )}
+              <button 
+                type="button" 
+                className="subtask-remove-btn"
+                onClick={() => handleRemoveSubtask(index)}
+                title="Удалить шаг"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
           ))}
           
@@ -93,7 +102,7 @@ export function BreakdownModal({ task, onSave, onClose }: BreakdownModalProps) {
               className="btn btn-primary filled"
               disabled={subtasks.every(s => !s.trim())}
             >
-              Создать подзадачи
+              {existingSubtasks.length > 0 ? 'Сохранить изменения' : 'Создать подзадачи'}
             </button>
           </div>
         </form>
