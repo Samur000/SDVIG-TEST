@@ -814,16 +814,16 @@
 }
 
 .action-sheet-option input[type="radio"] {
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   margin: 0;
-  margin-top: 2px;
+  margin-top: 3px;
   accent-color: var(--accent);
   cursor: pointer;
   flex-shrink: 0;
 }
 
-/* Мобильная версия - уменьшенные radio кнопки */
+/* Мобильная версия - уменьшенные radio кнопки (в два раза меньше) */
 @media (max-width: 768px) {
   .action-sheet-option input[type="radio"] {
     width: 6px;
