@@ -742,9 +742,9 @@
 /* Мобильная версия - уменьшенные radio кнопки */
 @media (max-width: 768px) {
   .start-page-option input[type="radio"] {
-    width: 10px;
-    height: 10px;
-    margin-top: 4px;
+    width: 5px;
+    height: 5px;
+    margin-top: 6px;
   }
 }
 
