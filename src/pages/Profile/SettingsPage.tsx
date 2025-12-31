@@ -60,8 +60,8 @@ export function SettingsPage() {
     dispatch({ type: 'SET_CUSTOM_START_PAGE', payload: page });
   };
   
-  // Состояние раскрытия секции стартовой страницы
-  const [isStartPageExpanded, setIsStartPageExpanded] = useState(false);
+  // Состояние Action Sheet для стартовой страницы
+  const [showStartPageSheet, setShowStartPageSheet] = useState(false);
   
   // Получить текст текущего выбора стартовой страницы
   const getStartPageLabel = (): string => {
@@ -75,6 +75,11 @@ export function SettingsPage() {
       default:
         return 'День';
     }
+  };
+  
+  // Закрыть Action Sheet
+  const closeStartPageSheet = () => {
+    setShowStartPageSheet(false);
   };
   
   // Открыть модалку редактирования профиля
@@ -308,32 +313,39 @@ export function SettingsPage() {
         <h3>Запуск</h3>
         <div className="settings-list">
           <button 
-            className={`settings-item start-page-toggle ${isStartPageExpanded ? 'expanded' : ''}`}
-            onClick={() => setIsStartPageExpanded(!isStartPageExpanded)}
+            className="settings-item start-page-row"
+            onClick={() => setShowStartPageSheet(true)}
           >
-            <div className="settings-item-info">
-              <span className="settings-item-title">Стартовая страница</span>
-              <span className="settings-item-desc">{getStartPageLabel()}</span>
+            <span className="settings-item-title">Стартовая страница</span>
+            <div className="start-page-value">
+              <span>{getStartPageLabel()}</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
             </div>
-            <svg 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2"
-              className={`start-page-chevron ${isStartPageExpanded ? 'open' : ''}`}
-            >
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
           </button>
-          
-          {/* Варианты выбора */}
-          {isStartPageExpanded && (
-            <div className="start-page-options">
-              <label className={`start-page-option ${startPageMode === 'default' ? 'active' : ''}`}>
+        </div>
+      </div>
+      
+      {/* Action Sheet для выбора стартовой страницы */}
+      {showStartPageSheet && (
+        <div className="action-sheet-overlay" onClick={closeStartPageSheet}>
+          <div className="action-sheet" onClick={e => e.stopPropagation()}>
+            <div className="action-sheet-header">
+              <h3>Стартовая страница</h3>
+              <button className="action-sheet-close" onClick={closeStartPageSheet}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="action-sheet-content">
+              <label className={`action-sheet-option ${startPageMode === 'default' ? 'active' : ''}`}>
                 <input
                   type="radio"
                   name="startPageMode"
-                  value="default"
                   checked={startPageMode === 'default'}
                   onChange={() => handleStartPageModeChange('default')}
                 />
@@ -343,11 +355,10 @@ export function SettingsPage() {
                 </div>
               </label>
               
-              <label className={`start-page-option ${startPageMode === 'last' ? 'active' : ''}`}>
+              <label className={`action-sheet-option ${startPageMode === 'last' ? 'active' : ''}`}>
                 <input
                   type="radio"
                   name="startPageMode"
-                  value="last"
                   checked={startPageMode === 'last'}
                   onChange={() => handleStartPageModeChange('last')}
                 />
@@ -357,11 +368,10 @@ export function SettingsPage() {
                 </div>
               </label>
               
-              <label className={`start-page-option ${startPageMode === 'custom' ? 'active' : ''}`}>
+              <label className={`action-sheet-option ${startPageMode === 'custom' ? 'active' : ''}`}>
                 <input
                   type="radio"
                   name="startPageMode"
-                  value="custom"
                   checked={startPageMode === 'custom'}
                   onChange={() => handleStartPageModeChange('custom')}
                 />
@@ -373,32 +383,32 @@ export function SettingsPage() {
               
               {/* Выбор конкретной страницы */}
               {startPageMode === 'custom' && (
-                <div className="custom-page-select">
-                  <select
-                    value={customStartPage}
-                    onChange={(e) => handleCustomStartPageChange(e.target.value as AppPage)}
-                  >
-                    {PAGE_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                  <svg 
-                    className="custom-select-arrow"
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2"
-                  >
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
+                <div className="page-select-list">
+                  {PAGE_OPTIONS.map(opt => (
+                    <label 
+                      key={opt.value} 
+                      className={`page-select-option ${customStartPage === opt.value ? 'active' : ''}`}
+                    >
+                      <input
+                        type="radio"
+                        name="customStartPage"
+                        checked={customStartPage === opt.value}
+                        onChange={() => handleCustomStartPageChange(opt.value)}
+                      />
+                      <span>{opt.label}</span>
+                      {customStartPage === opt.value && (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      )}
+                    </label>
+                  ))}
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Оформление */}
       <div className="settings-section">
