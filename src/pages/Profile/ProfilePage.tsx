@@ -1,12 +1,12 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { Modal } from '../../components/Modal';
 import { EmptyState } from '../../components/UI';
 import { useApp } from '../../store/AppContext';
 import { Document } from '../../types';
-import { isThisWeek, formatDate } from '../../utils/date';
 import { DocumentForm } from './DocumentForm';
+import { WeeklyReport } from './WeeklyReport';
 import './ProfilePage.css';
 
 export function ProfilePage() {
@@ -14,89 +14,9 @@ export function ProfilePage() {
   const navigate = useNavigate();
   const [showDocForm, setShowDocForm] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
-  // Фолбэки для старых/повреждённых данных из хранилища, чтобы не падать в проде
-  const profile = state.profile ?? { name: '', bio: '', goals: [] };
-  const wallets = state.wallets ?? [];
-  const tasks = state.tasks ?? [];
-  const habits = state.habits ?? [];
-  const focusSessions = state.focusSessions ?? [];
+  
+  // Фолбэки для старых/повреждённых данных из хранилища
   const documents = state.documents ?? [];
-  
-  // Финансы
-  const totalBalance = useMemo(() => 
-    wallets.reduce((sum, w) => sum + Number(w.balance || 0), 0),
-    [wallets]
-  );
-  
-  const cashBalance = useMemo(() =>
-    wallets.filter(w => w.type === 'cash').reduce((sum, w) => sum + Number(w.balance || 0), 0),
-    [wallets]
-  );
-  
-  const cardBalance = useMemo(() =>
-    wallets.filter(w => w.type === 'card').reduce((sum, w) => sum + Number(w.balance || 0), 0),
-    [wallets]
-  );
-  
-  // Статистика задач
-  const weekTasks = useMemo(() => {
-    const rootTasks = tasks.filter(t => !t.parentId);
-    const completed = rootTasks.filter(t => t.completed).length;
-    const total = rootTasks.length;
-    return { completed, total, percent: total > 0 ? Math.round((completed / total) * 100) : 0 };
-  }, [tasks]);
-  
-  // Статистика привычек
-  const habitsStats = useMemo(() => {
-    if (habits.length === 0) return { avgPercent: 0 };
-    
-    let totalPercent = 0;
-    const today = new Date();
-    
-    habits.forEach(habit => {
-      let completed = 0;
-      
-      // Считаем выполненные дни за последние 7 дней
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const dateStr = formatDate(date);
-        
-        if (habit.records.includes(dateStr)) {
-          completed++;
-        }
-      }
-      
-      // Процент выполнения за неделю (7 дней)
-      totalPercent += (completed / 7) * 100;
-    });
-    
-    return { avgPercent: Math.round(totalPercent / habits.length) };
-  }, [habits]);
-  
-  // Фокус-время за неделю
-  const weekFocusTime = useMemo(() => {
-    const weekSessions = focusSessions.filter(
-      s => typeof s.date === 'string' && isThisWeek(s.date.split('T')[0])
-    );
-    const totalSeconds = weekSessions.reduce(
-      (sum, s) => sum + (Number.isFinite(s.duration) ? s.duration : 0),
-      0
-    );
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    return { hours, minutes, totalMinutes: Math.floor(totalSeconds / 60) };
-  }, [focusSessions]);
-  
-  const formatMoney = (amount: number) => {
-    const safeAmount = Number.isFinite(amount) ? amount : 0;
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: 'RUB',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(safeAmount);
-  };
   
   const handleAddDocument = (doc: Document) => {
     dispatch({ type: 'ADD_DOCUMENT', payload: doc });
@@ -156,106 +76,8 @@ export function ProfilePage() {
         </button>
       }
     >
-      {/* Профиль */}
-      <div className="profile-card card">
-        <div className="profile-header">
-          <div className="profile-avatar">
-            {profile.avatar ? (
-              <img src={profile.avatar} alt="Аватар" />
-            ) : (
-              profile.name ? profile.name[0].toUpperCase() : '?'
-            )}
-          </div>
-          <div className="profile-info">
-            <h3 className="profile-name">
-              {profile.name || 'Не указано'}
-            </h3>
-            {profile.bio && (
-              <p className="profile-bio">{profile.bio}</p>
-            )}
-          </div>
-        </div>
-        
-        {profile.goals?.length > 0 && (
-          <div className="profile-goals">
-            <span className="goals-label">Цели:</span>
-            <div className="goals-list">
-              {profile.goals.map((goal, idx) => (
-                <span key={idx} className="chip">{goal}</span>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {/* Сводка денег */}
-      <div className="money-summary card-accent">
-        <div className="money-header">
-          <h3>Мои деньги</h3>
-          <button className="btn btn-sm" onClick={() => navigate('/finance')}>
-            Подробнее
-          </button>
-        </div>
-        <div className="money-total">{formatMoney(totalBalance)}</div>
-        <div className="money-breakdown">
-          <span>Наличные: {formatMoney(cashBalance)}</span>
-          <span>Карты: {formatMoney(cardBalance)}</span>
-        </div>
-      </div>
-      
-      {/* Статистика */}
-      <div className="stats-section">
-        <h3>Отчёт за неделю</h3>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 11l3 3L22 4"/>
-                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-              </svg>
-            </div>
-            <div className="stat-content">
-              <span className="stat-value">{weekTasks.completed}/{weekTasks.total}</span>
-              <span className="stat-label">Задач выполнено</span>
-            </div>
-            {weekTasks.total > 0 && (
-              <span className="stat-badge">{weekTasks.percent}%</span>
-            )}
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
-                <path d="M12 6v6l4 2"/>
-              </svg>
-            </div>
-            <div className="stat-content">
-              <span className="stat-value">{habitsStats.avgPercent}%</span>
-              <span className="stat-label">Привычки</span>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <circle cx="12" cy="12" r="6"/>
-                <circle cx="12" cy="12" r="2"/>
-              </svg>
-            </div>
-            <div className="stat-content">
-              <span className="stat-value">
-                {weekFocusTime.hours > 0 
-                  ? `${weekFocusTime.hours}ч ${weekFocusTime.minutes}м`
-                  : `${weekFocusTime.totalMinutes}м`
-                }
-              </span>
-              <span className="stat-label">Фокус-время</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Недельный отчёт */}
+      <WeeklyReport />
       
       {/* Документы */}
       <div className="documents-section">

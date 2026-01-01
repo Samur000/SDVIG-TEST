@@ -233,13 +233,14 @@ export function TasksPage() {
             <div className="task-actions">
               <button 
                 className="btn-icon" 
-                title="Я застрял"
+                title="Подзадачи"
                 onClick={() => setBreakdownTask(task)}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10"/>
-                  <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
-                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  <line x1="8" y1="9" x2="16" y2="9"/>
+                  <line x1="8" y1="12" x2="16" y2="12"/>
+                  <line x1="8" y1="15" x2="16" y2="15"/>
                 </svg>
               </button>
               <button 

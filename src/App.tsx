@@ -7,6 +7,7 @@ import { FinancePage } from './pages/Finance';
 import { TasksPage } from './pages/Tasks';
 import { InboxPage } from './pages/Inbox';
 import { ProfilePage, SettingsPage } from './pages/Profile';
+import { FocusPage } from './pages/Focus';
 
 const basename = import.meta.env.BASE_URL;
 
@@ -83,6 +84,7 @@ function AppRoutes() {
         <Route path="/inbox" element={<InboxPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/focus" element={<FocusPage />} />
       </Routes>
     </>
   );

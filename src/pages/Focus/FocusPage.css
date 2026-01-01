@@ -1,0 +1,335 @@
+/* Focus Page - Pomodoro Timer */
+
+.focus-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 0;
+  min-height: calc(100vh - 180px);
+}
+
+/* Режимы */
+.focus-modes {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background: var(--bg-secondary, #f3f4f6);
+  border-radius: 12px;
+}
+
+.focus-mode-btn {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted, #6b7280);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.focus-mode-btn:hover:not(:disabled) {
+  color: var(--text, #1f2937);
+}
+
+.focus-mode-btn.active {
+  background: var(--bg, #ffffff);
+  color: var(--text, #1f2937);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.focus-mode-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Таймер */
+.focus-timer-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.focus-timer-ring {
+  transform: rotate(-90deg);
+}
+
+.focus-timer-bg {
+  stroke: var(--border, #e5e7eb);
+}
+
+.focus-timer-progress {
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.focus-timer-display {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.focus-timer-time {
+  font-size: 56px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition: color 0.3s ease;
+}
+
+.focus-timer-mode {
+  font-size: 14px;
+  color: var(--muted, #6b7280);
+  font-weight: 500;
+}
+
+/* Пресеты */
+.focus-presets {
+  display: flex;
+  gap: 8px;
+}
+
+.focus-preset-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted, #6b7280);
+  background: var(--bg-secondary, #f3f4f6);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.focus-preset-btn:hover {
+  border-color: var(--accent, #0f7a71);
+  color: var(--accent, #0f7a71);
+}
+
+.focus-preset-btn.active {
+  background: var(--accent, #0f7a71);
+  color: white;
+  border-color: var(--accent, #0f7a71);
+}
+
+/* Поле задачи */
+.focus-task-input {
+  width: 100%;
+  max-width: 320px;
+}
+
+.focus-task-field {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  text-align: center;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  background: var(--bg, #ffffff);
+  color: var(--text, #1f2937);
+  transition: border-color 0.2s ease;
+}
+
+.focus-task-field:focus {
+  outline: none;
+  border-color: var(--accent, #0f7a71);
+}
+
+.focus-task-field::placeholder {
+  color: var(--muted, #9ca3af);
+}
+
+/* Управление */
+.focus-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.focus-control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.focus-control-btn.primary {
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  border-radius: 16px;
+  min-width: 140px;
+}
+
+.focus-control-btn.primary:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.focus-control-btn.primary:active {
+  transform: scale(0.98);
+}
+
+.focus-control-btn.primary svg {
+  width: 20px;
+  height: 20px;
+}
+
+.focus-control-btn.secondary {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-secondary, #f3f4f6);
+  color: var(--muted, #6b7280);
+}
+
+.focus-control-btn.secondary:hover {
+  background: var(--border, #e5e7eb);
+  color: var(--text, #1f2937);
+}
+
+.focus-control-btn.secondary:active {
+  transform: scale(0.95);
+}
+
+.focus-control-btn.secondary svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Счётчик сессий */
+.focus-sessions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--bg-secondary, #f3f4f6);
+  border-radius: 12px;
+}
+
+.focus-sessions-label {
+  font-size: 13px;
+  color: var(--muted, #6b7280);
+}
+
+.focus-sessions-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.focus-session-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border, #e5e7eb);
+  transition: background 0.3s ease;
+}
+
+.focus-session-dot.completed {
+  background: #ea580c;
+}
+
+.focus-sessions-count {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text, #1f2937);
+}
+
+/* Статистика за сегодня */
+.focus-today-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.focus-stats-label {
+  color: var(--muted, #6b7280);
+}
+
+.focus-stats-value {
+  font-weight: 600;
+  color: #ea580c;
+}
+
+/* Header back button */
+.header-back-btn {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent, #0f7a71);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+}
+
+.header-back-btn:hover {
+  opacity: 0.8;
+}
+
+/* ===== Тёмная тема ===== */
+[data-theme="dark"] .focus-modes {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .focus-mode-btn.active {
+  background: var(--bg-secondary, #262828);
+}
+
+[data-theme="dark"] .focus-preset-btn {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .focus-task-field {
+  background: var(--bg-secondary, #262828);
+}
+
+[data-theme="dark"] .focus-control-btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .focus-control-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .focus-sessions {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ===== Адаптив ===== */
+@media (max-width: 400px) {
+  .focus-timer-time {
+    font-size: 48px;
+  }
+  
+  .focus-control-btn.primary {
+    padding: 14px 24px;
+    min-width: 120px;
+  }
+  
+  .focus-mode-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 768px) {
+  .focus-page {
+    padding: 32px 0;
+    gap: 32px;
+  }
+  
+  .focus-timer-time {
+    font-size: 72px;
+  }
+}
+
