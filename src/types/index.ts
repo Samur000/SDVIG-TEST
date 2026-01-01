@@ -27,16 +27,98 @@ export interface DayTask {
 }
 
 // ============ Финансы ============
-export type WalletType = 'cash' | 'card';
+
+// Иконки кошельков
+export type WalletIcon = 
+  | 'card' | 'cash' | 'bank' | 'safe' | 'crypto' 
+  | 'sber' | 'tinkoff' | 'home';
+
+// Цвета кошельков (пастельные)
+export type WalletColor = 
+  | '#6366F1' | '#8B5CF6' | '#EC4899' | '#EF4444'
+  | '#F59E0B' | '#10B981' | '#14B8A6' | '#3B82F6'
+  | '#6B7280' | '#84CC16';
+
+// Валюты (приоритизированные)
+export type Currency = 
+  | 'RUB' | 'USD' | 'EUR' | 'KZT' | 'BYN' 
+  | 'GEL' | 'AMD' | 'UZS' | 'KGS' | 'TJS'
+  | 'TRY' | 'AED' | 'CNY' | 'USDT';
+
+// Символы валют
+export const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  RUB: '₽',
+  USD: '$',
+  EUR: '€',
+  KZT: '₸',
+  BYN: 'Br',
+  GEL: '₾',
+  AMD: '֏',
+  UZS: 'сўм',
+  KGS: 'сом',
+  TJS: 'с.',
+  TRY: '₺',
+  AED: 'د.إ',
+  CNY: '¥',
+  USDT: '₮'
+};
+
+// Названия валют
+export const CURRENCY_NAMES: Record<Currency, string> = {
+  RUB: 'Российский рубль',
+  USD: 'Доллар США',
+  EUR: 'Евро',
+  KZT: 'Казахстанский тенге',
+  BYN: 'Белорусский рубль',
+  GEL: 'Грузинский лари',
+  AMD: 'Армянский драм',
+  UZS: 'Узбекский сум',
+  KGS: 'Киргизский сом',
+  TJS: 'Таджикский сомони',
+  TRY: 'Турецкая лира',
+  AED: 'Дирхам ОАЭ',
+  CNY: 'Китайский юань',
+  USDT: 'Tether (USDT)'
+};
+
+// Список всех валют
+export const CURRENCIES: Currency[] = [
+  'RUB', 'USD', 'EUR', 'KZT', 'BYN', 
+  'GEL', 'AMD', 'UZS', 'KGS', 'TJS',
+  'TRY', 'AED', 'CNY', 'USDT'
+];
+
+// Цвета для выбора
+export const WALLET_COLORS: WalletColor[] = [
+  '#6366F1', '#8B5CF6', '#EC4899', '#EF4444',
+  '#F59E0B', '#10B981', '#14B8A6', '#3B82F6',
+  '#6B7280', '#84CC16'
+];
+
+// Иконки для выбора
+export const WALLET_ICONS: { value: WalletIcon; label: string }[] = [
+  { value: 'card', label: 'Карта' },
+  { value: 'cash', label: 'Наличные' },
+  { value: 'bank', label: 'Банк' },
+  { value: 'safe', label: 'Копилка' },
+  { value: 'crypto', label: 'Крипто' },
+  { value: 'sber', label: 'Сбер' },
+  { value: 'tinkoff', label: 'Тинькофф' },
+  { value: 'home', label: 'Дом' }
+];
 
 export interface Wallet {
   id: string;
-  type: WalletType;
   name: string;
+  icon: WalletIcon;
+  color: WalletColor;
+  currency: Currency;
   balance: number;
+  // Для обратной совместимости (удалить после миграции)
+  type?: 'cash' | 'card';
 }
 
-export type TransactionType = 'income' | 'expense';
+export type TransactionType = 'income' | 'expense' | 'transfer';
 
 export interface Transaction {
   id: string;
@@ -47,6 +129,9 @@ export interface Transaction {
   category: string;
   comment?: string;
   createdAt?: string; // ISO string для сортировки по времени
+  // Поля для переводов
+  toWalletId?: string; // Кошелек назначения (для transfer)
+  toAmount?: number; // Сумма зачисления (для мультивалютных переводов)
 }
 
 // ============ Дела / To-Do ============
@@ -186,8 +271,22 @@ export const initialState: AppState = {
   events: [],
   dayTasks: {},
   wallets: [
-    { id: 'wallet-cash', type: 'cash', name: 'Наличные', balance: 0 },
-    { id: 'wallet-card', type: 'card', name: 'Карта', balance: 0 }
+    { 
+      id: 'wallet-cash', 
+      name: 'Наличные', 
+      icon: 'cash',
+      color: '#10B981',
+      currency: 'RUB',
+      balance: 0 
+    },
+    { 
+      id: 'wallet-card', 
+      name: 'Карта', 
+      icon: 'card',
+      color: '#3B82F6',
+      currency: 'RUB',
+      balance: 0 
+    }
   ],
   transactions: [],
   categories: defaultCategories,
@@ -205,4 +304,45 @@ export const initialState: AppState = {
     theme: 'light'
   }
 };
+
+// Функция миграции старых кошельков к новому формату
+export function migrateWallets(wallets: Wallet[], transactions: Transaction[]): { wallets: Wallet[], transactions: Transaction[] } {
+  // Проверяем, нужна ли миграция (старые кошельки имеют type, но не имеют icon)
+  const needsMigration = wallets.some(w => (w as any).type && !w.icon);
+  
+  if (!needsMigration) {
+    return { wallets, transactions };
+  }
+  
+  // Создаём два кошелька: Наличные и Карта
+  const cashWallet: Wallet = {
+    id: 'wallet-cash-migrated',
+    name: 'Наличные',
+    icon: 'cash',
+    color: '#10B981',
+    currency: 'RUB',
+    balance: wallets.find(w => (w as any).type === 'cash')?.balance || 0
+  };
+  
+  const cardWallet: Wallet = {
+    id: 'wallet-card-migrated',
+    name: 'Карта',
+    icon: 'card',
+    color: '#3B82F6',
+    currency: 'RUB',
+    balance: wallets.find(w => (w as any).type === 'card')?.balance || 
+             wallets.reduce((sum, w) => sum + w.balance, 0) - cashWallet.balance
+  };
+  
+  // Обновляем все транзакции, привязывая к кошельку карты
+  const migratedTransactions = transactions.map(tx => ({
+    ...tx,
+    walletId: 'wallet-card-migrated'
+  }));
+  
+  return {
+    wallets: [cashWallet, cardWallet],
+    transactions: migratedTransactions
+  };
+}
 

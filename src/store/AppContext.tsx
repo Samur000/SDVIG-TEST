@@ -23,7 +23,8 @@ import {
   Theme,
   StartPageMode,
   AppPage,
-  Settings
+  Settings,
+  migrateWallets
 } from '../types';
 import { initStorage, saveStateAsync } from './storage';
 
@@ -266,16 +267,44 @@ function reducer(state: AppState, action: Action): AppState {
         transactions: state.transactions.filter(t => t.walletId !== action.payload)
       };
     case 'ADD_TRANSACTION': {
-      const wallet = state.wallets.find(w => w.id === action.payload.walletId);
+      const tx = action.payload;
+      
+      // Обработка перевода между кошельками
+      if (tx.type === 'transfer') {
+        const fromWallet = state.wallets.find(w => w.id === tx.walletId);
+        const toWallet = state.wallets.find(w => w.id === tx.toWalletId);
+        if (!fromWallet || !toWallet) return state;
+        
+        const toAmount = tx.toAmount || tx.amount; // Если валюты одинаковые
+        
+        return {
+          ...state,
+          transactions: [...state.transactions, tx],
+          wallets: state.wallets.map(w => {
+            if (w.id === tx.walletId) {
+              return { ...w, balance: w.balance - tx.amount };
+            }
+            if (w.id === tx.toWalletId) {
+              return { ...w, balance: w.balance + toAmount };
+            }
+            return w;
+          })
+        };
+      }
+      
+      // Обычная операция (доход/расход)
+      const wallet = state.wallets.find(w => w.id === tx.walletId);
       if (!wallet) return state;
-      const balanceChange = action.payload.type === 'income' 
-        ? action.payload.amount 
-        : -action.payload.amount;
+      
+      const balanceChange = tx.type === 'income' 
+        ? tx.amount 
+        : -tx.amount;
+        
       return {
         ...state,
-        transactions: [...state.transactions, action.payload],
+        transactions: [...state.transactions, tx],
         wallets: state.wallets.map(w => 
-          w.id === action.payload.walletId 
+          w.id === tx.walletId 
             ? { ...w, balance: w.balance + balanceChange }
             : w
         )
@@ -284,6 +313,26 @@ function reducer(state: AppState, action: Action): AppState {
     case 'DELETE_TRANSACTION': {
       const tx = state.transactions.find(t => t.id === action.payload);
       if (!tx) return state;
+      
+      // Обработка удаления перевода
+      if (tx.type === 'transfer') {
+        const toAmount = tx.toAmount || tx.amount;
+        return {
+          ...state,
+          transactions: state.transactions.filter(t => t.id !== action.payload),
+          wallets: state.wallets.map(w => {
+            if (w.id === tx.walletId) {
+              return { ...w, balance: w.balance + tx.amount }; // Возвращаем списанное
+            }
+            if (w.id === tx.toWalletId) {
+              return { ...w, balance: w.balance - toAmount }; // Убираем зачисленное
+            }
+            return w;
+          })
+        };
+      }
+      
+      // Обычная операция
       const balanceRevert = tx.type === 'income' ? -tx.amount : tx.amount;
       return {
         ...state,
@@ -686,9 +735,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const loadedState = await initStorage();
         
         // Обеспечиваем совместимость со старыми данными
-        const withDefaults: AppState = {
+        let withDefaults: AppState = {
           ...loadedState,
           settings: loadedState.settings || initialState.settings
+        };
+        
+        // Миграция кошельков к новому формату (v3.0)
+        const migrated = migrateWallets(withDefaults.wallets, withDefaults.transactions);
+        withDefaults = {
+          ...withDefaults,
+          wallets: migrated.wallets,
+          transactions: migrated.transactions
         };
         
         dispatch({ type: 'LOAD_STATE', payload: withDefaults });

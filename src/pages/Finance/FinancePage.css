@@ -1,4 +1,148 @@
-/* Карточка баланса */
+/* Горизонтальный скролл кошельков с touch swipe */
+.wallets-scroll {
+  margin: 0 -16px 20px;
+  padding: 0 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+}
+
+.wallets-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.wallets-container {
+  display: flex;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.wallets-container > * {
+  scroll-snap-align: start;
+}
+
+.wallet-card {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  min-width: 160px;
+  background: var(--bg);
+  border: 2px solid;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wallet-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.wallet-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wallet-card-icon .wallet-icon-svg {
+  width: 22px;
+  height: 22px;
+}
+
+.wallet-card-icon .wallet-icon-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.wallet-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.wallet-card-name {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wallet-card-balance {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.wallet-add-card {
+  flex-direction: column;
+  justify-content: center;
+  border-style: dashed;
+  border-color: var(--border);
+  color: var(--muted);
+  min-width: 100px;
+}
+
+.wallet-add-card:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.wallet-add-card svg {
+  width: 24px;
+  height: 24px;
+}
+
+.wallet-add-card span {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Общий баланс по валютам */
+.total-balances {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.total-balance-item {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-lg);
+}
+
+.total-balance-label {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.total-balance-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Карточка баланса (legacy) */
 .balance-card {
   padding: 24px;
   margin-bottom: 20px;
@@ -122,13 +266,29 @@
   font-weight: 500;
 }
 
-/* Кнопка добавления */
+/* Кнопки добавления и перевода */
 .add-transaction-btn {
   width: 100%;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .add-transaction-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.transfer-btn {
+  width: 100%;
+  margin-bottom: 24px;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.transfer-btn:hover {
+  background: var(--accent-soft);
+}
+
+.transfer-btn svg {
   width: 18px;
   height: 18px;
 }
@@ -162,17 +322,26 @@
 .transaction-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   padding: 14px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
 
+.transaction-color-indicator {
+  width: 4px;
+  height: 36px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
 .transaction-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .transaction-category {
@@ -207,6 +376,10 @@
 
 .transaction-amount.expense {
   color: var(--danger);
+}
+
+.transaction-amount.transfer {
+  color: var(--accent);
 }
 
 .transaction-delete {
@@ -273,5 +446,23 @@
   background: var(--accent-soft);
   color: var(--accent);
   border-radius: var(--radius-full);
+}
+
+/* Кнопка удаления кошелька */
+.wallet-form-delete {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.wallet-form-delete .btn-danger {
+  width: 100%;
+  justify-content: center;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.wallet-form-delete .btn-danger:hover {
+  background: #FEF2F2;
 }
 
