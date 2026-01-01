@@ -92,7 +92,6 @@
 .focus-presets {
   display: flex;
   gap: 8px;
-  margin-bottom: 32px;
 }
 
 .focus-preset {

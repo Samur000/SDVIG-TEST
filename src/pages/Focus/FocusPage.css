@@ -4,8 +4,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
-  padding: 16px 0;
+  gap: 15px;
   min-height: calc(100vh - 180px);
 }
 
@@ -74,7 +73,7 @@
 }
 
 .focus-timer-time {
-  font-size: 56px;
+  font-size: 40px; /* Уменьшено на 30% (было 56px) */
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -308,7 +307,7 @@
 /* ===== Адаптив ===== */
 @media (max-width: 400px) {
   .focus-timer-time {
-    font-size: 48px;
+    font-size: 34px; /* Уменьшено на 30% (было 48px) */
   }
   
   .focus-control-btn.primary {
@@ -324,12 +323,11 @@
 
 @media (min-width: 768px) {
   .focus-page {
-    padding: 32px 0;
-    gap: 32px;
+    gap: 15px;
   }
   
   .focus-timer-time {
-    font-size: 72px;
+    font-size: 50px; /* Уменьшено на 30% (было 72px) */
   }
 }
 

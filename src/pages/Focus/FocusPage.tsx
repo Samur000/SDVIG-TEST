@@ -362,8 +362,8 @@ export function FocusPage() {
   }, [timeLeft, isRunning, mode]);
   
   // SVG параметры для кольца
-  const size = 280;
-  const strokeWidth = 12;
+  const size = 196; // Уменьшено на 30% (было 280)
+  const strokeWidth = 8; // Пропорционально уменьшено
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (progress / 100) * circumference;
