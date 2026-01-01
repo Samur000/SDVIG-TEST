@@ -51,7 +51,6 @@ export function FocusPage() {
   
   const intervalRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const sessionSavedRef = useRef(false);
   
   // Refs для актуальных значений при сохранении
