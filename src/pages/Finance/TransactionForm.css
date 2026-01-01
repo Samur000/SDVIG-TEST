@@ -12,6 +12,8 @@
   background: var(--bg-secondary, #F3F4F6);
   border-radius: var(--radius-full);
   position: relative;
+  overflow: hidden;
+  z-index: 0;
 }
 
 /* Скользящий индикатор */
@@ -48,6 +50,10 @@
   border-radius: var(--radius-full);
   transition: color 0.2s ease, transform 0.15s ease;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
   position: relative;
   z-index: 1;
 }
