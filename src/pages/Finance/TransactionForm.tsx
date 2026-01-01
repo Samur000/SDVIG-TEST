@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Transaction, TransactionType, Wallet, CURRENCY_SYMBOLS } from '../../types';
+import { Transaction, Wallet, CURRENCY_SYMBOLS } from '../../types';
 import { getToday } from '../../utils/date';
 import { v4 as uuid } from 'uuid';
 import { WalletIconSVG } from './WalletForm';
