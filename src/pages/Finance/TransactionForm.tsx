@@ -144,23 +144,23 @@ export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCa
         createdAt: new Date().toISOString()
       });
     } else {
-      const finalCategory = showNewCategory ? newCategory.trim() : category;
+    const finalCategory = showNewCategory ? newCategory.trim() : category;
       if (!finalCategory) return;
-      
-      if (showNewCategory && newCategory.trim()) {
-        onAddCategory(newCategory.trim());
-      }
-      
-      onSave({
-        id: uuid(),
+    
+    if (showNewCategory && newCategory.trim()) {
+      onAddCategory(newCategory.trim());
+    }
+    
+    onSave({
+      id: uuid(),
         type: activeTab,
-        amount: numAmount,
-        date,
-        walletId,
-        category: finalCategory,
-        comment: comment.trim() || undefined,
-        createdAt: new Date().toISOString()
-      });
+      amount: numAmount,
+      date,
+      walletId,
+      category: finalCategory,
+      comment: comment.trim() || undefined,
+      createdAt: new Date().toISOString()
+    });
     }
   };
   
@@ -233,8 +233,8 @@ export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCa
       
       {/* Кошелёк (для доход/расход) */}
       {activeTab !== 'transfer' && (
-        <div className="form-group">
-          <label className="form-label">Кошелёк</label>
+      <div className="form-group">
+        <label className="form-label">Кошелёк</label>
           <div className="custom-wallet-select" ref={walletDropdownRef}>
             <button 
               type="button"
@@ -365,7 +365,7 @@ export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCa
                 </button>
                 {showToDropdown && (
                   <div className="custom-wallet-dropdown">
-                    {wallets.map(w => (
+          {wallets.map(w => (
                       <button
                         key={w.id}
                         type="button"
@@ -423,49 +423,49 @@ export function TransactionForm({ wallets, categories, onSave, onCancel, onAddCa
                   </span>
                 </div>
               )}
-            </div>
+      </div>
           )}
         </>
       )}
       
       {/* Категория (только для расхода/дохода) */}
       {activeTab !== 'transfer' && (
-        <div className="form-group">
-          <label className="form-label">Категория</label>
-          {!showNewCategory ? (
-            <div className="category-select">
-              <select value={category} onChange={e => setCategory(e.target.value)} required>
-                {categories.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-              <button 
-                type="button" 
-                className="add-category-btn"
-                onClick={() => setShowNewCategory(true)}
-              >
-                + Новая
-              </button>
-            </div>
-          ) : (
-            <div className="category-select">
-              <input
-                type="text"
-                value={newCategory}
-                onChange={e => setNewCategory(e.target.value)}
-                placeholder="Название категории"
-                required
-              />
-              <button 
-                type="button" 
-                className="add-category-btn"
-                onClick={() => setShowNewCategory(false)}
-              >
-                Отмена
-              </button>
-            </div>
-          )}
-        </div>
+      <div className="form-group">
+        <label className="form-label">Категория</label>
+        {!showNewCategory ? (
+          <div className="category-select">
+            <select value={category} onChange={e => setCategory(e.target.value)} required>
+              {categories.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <button 
+              type="button" 
+              className="add-category-btn"
+              onClick={() => setShowNewCategory(true)}
+            >
+              + Новая
+            </button>
+          </div>
+        ) : (
+          <div className="category-select">
+            <input
+              type="text"
+              value={newCategory}
+              onChange={e => setNewCategory(e.target.value)}
+              placeholder="Название категории"
+              required
+            />
+            <button 
+              type="button" 
+              className="add-category-btn"
+              onClick={() => setShowNewCategory(false)}
+            >
+              Отмена
+            </button>
+          </div>
+        )}
+      </div>
       )}
       
       {/* Дата */}

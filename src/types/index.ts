@@ -224,6 +224,19 @@ export interface FocusSession {
   completed: boolean;
 }
 
+// Состояние таймера Помодоро (для сохранения между страницами)
+export type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
+
+export interface TimerState {
+  mode: TimerMode;
+  timeLeft: number; // в секундах
+  isRunning: boolean;
+  sessionsCompleted: number;
+  currentTask: string;
+  focusDuration: number; // в минутах
+  startedAt?: number; // timestamp когда был запущен таймер
+}
+
 // ============ Главное состояние ============
 export interface AppState {
   // День
@@ -249,6 +262,9 @@ export interface AppState {
   
   // Статистика
   focusSessions: FocusSession[];
+  
+  // Таймер Помодоро
+  timerState?: TimerState;
   
   // Настройки
   settings: Settings;
@@ -300,6 +316,7 @@ export const initialState: AppState = {
   },
   documents: [],
   focusSessions: [],
+  timerState: undefined,
   settings: {
     theme: 'light'
   }

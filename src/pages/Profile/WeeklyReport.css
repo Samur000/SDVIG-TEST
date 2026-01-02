@@ -17,6 +17,7 @@
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.2s ease;
+  touch-action: pan-x;
 }
 
 .finance-card.loaded {
@@ -95,11 +96,32 @@
   letter-spacing: 0.5px;
 }
 
+.finance-values {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.finance-currency-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.finance-values:has(.finance-currency-row:nth-child(2)) .finance-value {
+  /* font-size: 20px; */
+}
+
+.finance-values:has(.finance-currency-row:nth-child(3)) .finance-value {
+  /* font-size: 18px; */
+}
+
 .finance-value {
   font-size: 24px;
   font-weight: 700;
   color: var(--text-primary, #134252);
   transition: opacity 0.15s ease, color 0.3s ease, transform 0.2s ease;
+  line-height: 1.2;
 }
 
 .finance-value.income {

@@ -5,7 +5,7 @@ import { formatDate, getToday } from '../../utils/date';
 import { Modal } from '../../components/Modal';
 import { TaskForm } from '../Tasks/TaskForm';
 import { CreateHabitModal } from '../Tasks/habits/CreateHabitModal';
-import { Task, Habit } from '../../types';
+import { Task, Habit, Currency, CURRENCY_SYMBOLS } from '../../types';
 import './WeeklyReport.css';
 
 // Компонент Sparkline (мини-график из 7 точек)
@@ -145,12 +145,24 @@ export function WeeklyReport() {
     return () => clearTimeout(timeout);
   }, []);
   
-  // Финансовые данные за неделю
+  // Финансовые данные за неделю (по валютам)
   const financeData = useMemo(() => {
     const today = new Date();
+    
+    // Группируем балансы по валютам
+    const balancesByCurrency: Record<Currency, number> = {} as Record<Currency, number>;
+    wallets.forEach(w => {
+      const currency = w.currency || 'RUB';
+      balancesByCurrency[currency] = (balancesByCurrency[currency] || 0) + (w.balance || 0);
+    });
+    
+    // Группируем доходы и расходы по валютам за неделю
+    const incomeByCurrency: Record<Currency, number> = {} as Record<Currency, number>;
+    const expenseByCurrency: Record<Currency, number> = {} as Record<Currency, number>;
+    
+    // Данные для спарклайна (по дням, только для первой валюты или RUB)
     const weekData: number[] = [];
-    let weekIncome = 0;
-    let weekExpense = 0;
+    const primaryCurrency = Object.keys(balancesByCurrency).find(c => balancesByCurrency[c as Currency] !== 0) as Currency || 'RUB';
     
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
@@ -161,26 +173,48 @@ export function WeeklyReport() {
       let dayBalance = 0;
       
       dayTransactions.forEach(t => {
+        const wallet = wallets.find(w => w.id === t.walletId);
+        if (!wallet) return;
+        
+        const currency = wallet.currency || 'RUB';
+        
         if (t.type === 'income') {
-          dayBalance += t.amount;
-          weekIncome += t.amount;
+          incomeByCurrency[currency] = (incomeByCurrency[currency] || 0) + t.amount;
+          if (currency === primaryCurrency) {
+            dayBalance += t.amount;
+          }
         } else if (t.type === 'expense') {
-          dayBalance -= t.amount;
-          weekExpense += t.amount;
+          expenseByCurrency[currency] = (expenseByCurrency[currency] || 0) + t.amount;
+          if (currency === primaryCurrency) {
+            dayBalance -= t.amount;
+          }
+        } else if (t.type === 'transfer') {
+          // Переводы не влияют на общий баланс, но влияют на спарклайн
+          if (currency === primaryCurrency) {
+            // Для спарклайна не учитываем переводы
+          }
         }
       });
       
       weekData.push(dayBalance);
     }
     
-    const totalBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
-    const weekChange = weekIncome - weekExpense;
+    // Вычисляем изменения за неделю по валютам
+    const weekChangeByCurrency: Record<Currency, number> = {} as Record<Currency, number>;
+    Object.keys(incomeByCurrency).forEach(currency => {
+      weekChangeByCurrency[currency as Currency] = (incomeByCurrency[currency as Currency] || 0) - (expenseByCurrency[currency as Currency] || 0);
+    });
+    Object.keys(expenseByCurrency).forEach(currency => {
+      if (!weekChangeByCurrency[currency as Currency]) {
+        weekChangeByCurrency[currency as Currency] = -(expenseByCurrency[currency as Currency] || 0);
+      }
+    });
     
     return {
-      balance: totalBalance,
-      income: weekIncome,
-      expense: weekExpense,
-      weekChange,
+      balancesByCurrency,
+      incomeByCurrency,
+      expenseByCurrency,
+      weekChangeByCurrency,
       sparklineBalance: weekData.map((_, i, arr) => arr.slice(0, i + 1).reduce((a, b) => a + b, 0)),
       sparklineIncome: weekData.map(d => d > 0 ? d : 0),
       sparklineExpense: weekData.map(d => d < 0 ? Math.abs(d) : 0),
@@ -319,8 +353,27 @@ export function WeeklyReport() {
   };
   
   // Свайп финансовой карточки
+  const touchStartY = useRef<number | null>(null);
+  const isHorizontalSwipe = useRef(false);
+  
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientX);
+    touchStartY.current = e.touches[0].clientY;
+    isHorizontalSwipe.current = false;
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStart === null || touchStartY.current === null) return;
+    
+    const diffX = Math.abs(touchStart - e.touches[0].clientX);
+    const diffY = Math.abs(touchStartY.current - e.touches[0].clientY);
+    
+    // Если горизонтальное движение больше вертикального, это горизонтальный свайп
+    if (diffX > diffY && diffX > 10) {
+      isHorizontalSwipe.current = true;
+      // Предотвращаем вертикальную прокрутку
+      e.preventDefault();
+    }
   };
   
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -329,11 +382,14 @@ export function WeeklyReport() {
     const diff = touchStart - e.changedTouches[0].clientX;
     const threshold = 50;
     
-    if (Math.abs(diff) > threshold) {
+    // Обрабатываем только если это был горизонтальный свайп
+    if (isHorizontalSwipe.current && Math.abs(diff) > threshold) {
       switchFinanceMode(diff > 0 ? 'next' : 'prev');
     }
     
     setTouchStart(null);
+    touchStartY.current = null;
+    isHorizontalSwipe.current = false;
   };
   
   const switchFinanceMode = (direction: 'next' | 'prev') => {
@@ -369,24 +425,26 @@ export function WeeklyReport() {
       case 'balance':
         return {
           label: 'Баланс',
-          value: financeData.balance,
-          change: financeData.weekChange,
+          valuesByCurrency: financeData.balancesByCurrency,
+          changeByCurrency: financeData.weekChangeByCurrency,
           sparkline: financeData.sparklineBalance,
           color: '#2186b4'
         };
       case 'income':
         return {
           label: 'Доход',
-          value: financeData.income,
-          change: financeData.income,
+          valuesByCurrency: financeData.incomeByCurrency,
+          changeByCurrency: financeData.incomeByCurrency,
           sparkline: financeData.sparklineIncome,
           color: '#22c55e'
         };
       case 'expense':
         return {
           label: 'Расход',
-          value: financeData.expense,
-          change: -financeData.expense,
+          valuesByCurrency: financeData.expenseByCurrency,
+          changeByCurrency: Object.fromEntries(
+            Object.entries(financeData.expenseByCurrency).map(([curr, val]) => [curr, -val])
+          ) as Record<Currency, number>,
           sparkline: financeData.sparklineExpense,
           color: '#ef4444'
         };
@@ -394,6 +452,19 @@ export function WeeklyReport() {
   };
   
   const financeDisplay = getFinanceDisplay();
+  
+  // Получить список валют с ненулевыми значениями
+  const getActiveCurrencies = (values: Record<Currency, number>): Currency[] => {
+    return Object.entries(values)
+      .filter(([_, value]) => Math.abs(value) > 0.01)
+      .map(([currency]) => currency as Currency)
+      .sort((a, b) => {
+        // Сортируем: сначала RUB, потом остальные по алфавиту
+        if (a === 'RUB') return -1;
+        if (b === 'RUB') return 1;
+        return a.localeCompare(b);
+      });
+  };
   
   // Сохранение задачи
   const handleSaveTask = (task: Task) => {
@@ -419,18 +490,42 @@ export function WeeklyReport() {
         ref={financeCardRef}
         className={`finance-card ${loaded ? 'loaded' : ''} ${isFinanceAnimating ? 'animating' : ''}`}
         onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         <div className="finance-content">
           
           <div className="finance-info" onClick={() => navigate('/finance')}>
             <span className="finance-label">{financeDisplay.label}</span>
-            <span className={`finance-value ${financeMode}`}>
-              {formatMoney(financeDisplay.value)} ₽
-            </span>
-            <span className={`finance-change ${financeDisplay.change >= 0 ? 'positive' : 'negative'}`}>
-              {financeDisplay.change >= 0 ? '↑' : '↓'} {financeDisplay.change >= 0 ? '+' : ''}{formatMoney(financeDisplay.change)} за неделю
-            </span>
+            <div className="finance-values">
+              {(() => {
+                const activeCurrencies = getActiveCurrencies(financeDisplay.valuesByCurrency);
+                if (activeCurrencies.length > 0) {
+                  return activeCurrencies.map(currency => {
+                    const value = financeDisplay.valuesByCurrency[currency] || 0;
+                    const change = financeDisplay.changeByCurrency[currency] || 0;
+                    return (
+                      <div key={currency} className="finance-currency-row">
+                        <span className={`finance-value ${financeMode}`}>
+                          {formatMoney(value)} {CURRENCY_SYMBOLS[currency]}
+                        </span>
+                        {Math.abs(change) > 0.01 && (
+                          <span className={`finance-change ${change >= 0 ? 'positive' : 'negative'}`}>
+                            {change >= 0 ? '↑' : '↓'} {change >= 0 ? '+' : ''}{formatMoney(Math.abs(change))} {CURRENCY_SYMBOLS[currency]} за неделю
+                          </span>
+                        )}
+                      </div>
+                    );
+                  });
+                } else {
+                  return (
+                    <span className={`finance-value ${financeMode}`}>
+                      0 ₽
+                    </span>
+                  );
+                }
+              })()}
+            </div>
           </div>
         
         </div>

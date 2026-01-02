@@ -20,6 +20,7 @@ import {
   Profile, 
   Document,
   FocusSession,
+  TimerState,
   Theme,
   StartPageMode,
   AppPage,
@@ -87,6 +88,7 @@ type Action =
   | { type: 'DELETE_DOCUMENT'; payload: string }
   // Фокус
   | { type: 'ADD_FOCUS_SESSION'; payload: FocusSession }
+  | { type: 'UPDATE_TIMER_STATE'; payload: TimerState | undefined }
   // Настройки
   | { type: 'SET_THEME'; payload: Theme }
   | { type: 'SET_START_PAGE_MODE'; payload: StartPageMode }
@@ -471,6 +473,8 @@ function reducer(state: AppState, action: Action): AppState {
     // Фокус
     case 'ADD_FOCUS_SESSION':
       return { ...state, focusSessions: [...state.focusSessions, action.payload] };
+    case 'UPDATE_TIMER_STATE':
+      return { ...state, timerState: action.payload };
 
     // Настройки
     case 'SET_THEME':

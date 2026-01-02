@@ -3,10 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { useApp } from '../../store/AppContext';
 import { saveStateAsync } from '../../store/storage';
+import { TimerMode } from '../../types';
 import { v4 as uuid } from 'uuid';
 import './FocusPage.css';
-
-type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
 
 interface PomodoroSettings {
   focusDuration: number;      // в минутах
@@ -42,15 +41,30 @@ export function FocusPage() {
     .filter(s => s.date?.startsWith(todayStr) && s.completed)
     .length;
   
-  // Состояние таймера
-  const [mode, setMode] = useState<TimerMode>('focus');
-  const [timeLeft, setTimeLeft] = useState(settings.focusDuration * 60);
-  const [isRunning, setIsRunning] = useState(false);
-  const [sessionsCompleted, setSessionsCompleted] = useState(todaySessionsCount);
-  const [currentTask, setCurrentTask] = useState('');
+  // Восстанавливаем состояние таймера из глобального state
+  const savedTimer = state.timerState;
+  
+  // Локальное состояние таймера (инициализируется из глобального)
+  const [mode, setMode] = useState<TimerMode>(savedTimer?.mode || 'focus');
+  const [timeLeft, setTimeLeft] = useState(() => {
+    if (savedTimer?.isRunning && savedTimer.startedAt) {
+      // Вычисляем сколько времени прошло с момента старта
+      const elapsed = Math.floor((Date.now() - savedTimer.startedAt) / 1000);
+      const remaining = Math.max(0, savedTimer.timeLeft - elapsed);
+      return remaining;
+    }
+    return savedTimer?.timeLeft || settings.focusDuration * 60;
+  });
+  const [isRunning, setIsRunning] = useState(savedTimer?.isRunning || false);
+  const [sessionsCompleted, setSessionsCompleted] = useState(savedTimer?.sessionsCompleted ?? todaySessionsCount);
+  const [currentTask, setCurrentTask] = useState(savedTimer?.currentTask || '');
+  const [focusDuration, setFocusDuration] = useState(savedTimer?.focusDuration || settings.focusDuration);
+  
+  // Режим минималистичного отображения (скрытие элементов)
+  const [showExtras, setShowExtras] = useState(!isRunning);
   
   const intervalRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
+  const startTimeRef = useRef<number>(savedTimer?.startedAt || 0);
   const sessionSavedRef = useRef(false);
   
   // Refs для актуальных значений при сохранении
@@ -58,21 +72,23 @@ export function FocusPage() {
   const timeLeftRef = useRef(timeLeft);
   const currentTaskRef = useRef(currentTask);
   const stateRef = useRef(state);
+  const isRunningRef = useRef(isRunning);
   
   // Синхронизация refs
   useEffect(() => { modeRef.current = mode; }, [mode]);
   useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
   useEffect(() => { currentTaskRef.current = currentTask; }, [currentTask]);
   useEffect(() => { stateRef.current = state; }, [state]);
+  useEffect(() => { isRunningRef.current = isRunning; }, [isRunning]);
   
   // Получаем длительность для текущего режима
   const getDuration = useCallback((m: TimerMode) => {
     switch (m) {
-      case 'focus': return settings.focusDuration * 60;
+      case 'focus': return focusDuration * 60;
       case 'shortBreak': return settings.shortBreakDuration * 60;
       case 'longBreak': return settings.longBreakDuration * 60;
     }
-  }, [settings]);
+  }, [settings, focusDuration]);
   
   // Форматирование времени
   const formatTime = (seconds: number) => {
@@ -106,7 +122,6 @@ export function FocusPage() {
   // Воспроизведение звука
   const playSound = useCallback(() => {
     try {
-      // Простой beep через Web Audio API
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -125,36 +140,59 @@ export function FocusPage() {
         audioContext.close();
       }, 200);
       
-      // Повторяем 3 раза
       setTimeout(() => playSound(), 300);
     } catch (e) {
       // Звук не поддерживается
     }
   }, []);
   
+  // Сохранение состояния таймера в глобальный state
+  const saveTimerState = useCallback((running: boolean, startedAt?: number) => {
+    const timerState = {
+      mode: modeRef.current,
+      timeLeft: timeLeftRef.current,
+      isRunning: running,
+      sessionsCompleted,
+      currentTask: currentTaskRef.current,
+      focusDuration,
+      startedAt: startedAt || startTimeRef.current
+    };
+    
+    dispatch({ type: 'UPDATE_TIMER_STATE', payload: timerState });
+  }, [dispatch, sessionsCompleted, focusDuration]);
+  
   // Старт таймера
   const handleStart = useCallback(() => {
     setIsRunning(true);
-    startTimeRef.current = Date.now();
-  }, []);
+    setShowExtras(false);
+    const now = Date.now();
+    startTimeRef.current = now;
+    sessionSavedRef.current = false;
+    saveTimerState(true, now);
+  }, [saveTimerState]);
   
   // Пауза
   const handlePause = useCallback(() => {
     setIsRunning(false);
-  }, []);
+    setShowExtras(true);
+    saveTimerState(false);
+  }, [saveTimerState]);
   
   // Сброс
   const handleReset = useCallback(() => {
     setIsRunning(false);
+    setShowExtras(true);
     setTimeLeft(getDuration(mode));
-  }, [getDuration, mode]);
+    sessionSavedRef.current = false;
+    dispatch({ type: 'UPDATE_TIMER_STATE', payload: undefined });
+  }, [getDuration, mode, dispatch]);
   
   // Сохранение текущей сессии
   const saveCurrentSession = useCallback((completed: boolean = false) => {
     if (mode !== 'focus' || sessionSavedRef.current) return;
     
     const elapsed = getDuration(mode) - timeLeft;
-    if (elapsed >= 10) { // Минимум 10 секунд
+    if (elapsed >= 10) {
       sessionSavedRef.current = true;
       
       const newSession = {
@@ -171,7 +209,6 @@ export function FocusPage() {
         payload: newSession
       });
       
-      // Также напрямую сохраняем в storage для гарантии
       const currentState = stateRef.current;
       const updatedState = { 
         ...currentState, 
@@ -187,7 +224,8 @@ export function FocusPage() {
     const saveSessionDirect = () => {
       if (modeRef.current !== 'focus' || sessionSavedRef.current) return;
       
-      const elapsed = getDuration('focus') - timeLeftRef.current;
+      const duration = getDuration('focus');
+      const elapsed = duration - timeLeftRef.current;
       if (elapsed >= 10) {
         sessionSavedRef.current = true;
         
@@ -200,13 +238,11 @@ export function FocusPage() {
           completed: false
         };
         
-        // Сохраняем через dispatch
         dispatch({
           type: 'ADD_FOCUS_SESSION',
           payload: newSession
         });
         
-        // Также напрямую сохраняем в storage для гарантии
         const currentState = stateRef.current;
         const updatedState = { 
           ...currentState, 
@@ -224,25 +260,35 @@ export function FocusPage() {
     
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Сохраняем при размонтировании компонента (уход со страницы)
-      saveSessionDirect();
+      // При уходе со страницы - сохраняем состояние таймера
+      if (isRunningRef.current) {
+        const timerState = {
+          mode: modeRef.current,
+          timeLeft: timeLeftRef.current,
+          isRunning: true,
+          sessionsCompleted,
+          currentTask: currentTaskRef.current,
+          focusDuration,
+          startedAt: startTimeRef.current
+        };
+        dispatch({ type: 'UPDATE_TIMER_STATE', payload: timerState });
+      }
     };
-  }, [getDuration, dispatch]);
+  }, [getDuration, dispatch, sessionsCompleted, focusDuration]);
   
   // Пропустить (перейти к следующему режиму)
   const handleSkip = useCallback(() => {
     setIsRunning(false);
+    setShowExtras(true);
     
     if (mode === 'focus') {
-      // Сохраняем сессию если был фокус
       saveCurrentSession(false);
       
-      // Переходим к перерыву
       const newSessions = sessionsCompleted + 1;
       setSessionsCompleted(newSessions);
       
       setTimeout(() => {
-        sessionSavedRef.current = false; // Сбрасываем для новой сессии
+        sessionSavedRef.current = false;
         if (newSessions % settings.sessionsUntilLongBreak === 0) {
           setMode('longBreak');
           setTimeLeft(getDuration('longBreak'));
@@ -250,18 +296,20 @@ export function FocusPage() {
           setMode('shortBreak');
           setTimeLeft(getDuration('shortBreak'));
         }
+        dispatch({ type: 'UPDATE_TIMER_STATE', payload: undefined });
       }, 100);
     } else {
-      // После перерыва - обратно к фокусу
       sessionSavedRef.current = false;
       setMode('focus');
       setTimeLeft(getDuration('focus'));
+      dispatch({ type: 'UPDATE_TIMER_STATE', payload: undefined });
     }
-  }, [mode, getDuration, sessionsCompleted, settings.sessionsUntilLongBreak, saveCurrentSession]);
+  }, [mode, getDuration, sessionsCompleted, settings.sessionsUntilLongBreak, saveCurrentSession, dispatch]);
   
   // Завершение таймера
   const handleTimerComplete = useCallback(() => {
     setIsRunning(false);
+    setShowExtras(true);
     playSound();
     
     if (mode === 'focus') {
@@ -274,29 +322,26 @@ export function FocusPage() {
         completed: true
       };
       
-      // Сохраняем завершённую сессию через dispatch
       dispatch({
         type: 'ADD_FOCUS_SESSION',
         payload: newSession
       });
       
-      // Также напрямую сохраняем в storage для гарантии
       const currentState = stateRef.current;
       const updatedState = { 
         ...currentState, 
         focusSessions: [...(currentState.focusSessions || []), newSession] 
       };
       saveStateAsync(updatedState).catch(console.error);
-      stateRef.current = updatedState; // Обновляем ref
+      stateRef.current = updatedState;
       
       sessionSavedRef.current = true;
       
       const newSessions = sessionsCompleted + 1;
       setSessionsCompleted(newSessions);
       
-      // Автоматически переходим к перерыву
       setTimeout(() => {
-        sessionSavedRef.current = false; // Сбрасываем для новой сессии
+        sessionSavedRef.current = false;
         if (newSessions % settings.sessionsUntilLongBreak === 0) {
           setMode('longBreak');
           setTimeLeft(getDuration('longBreak'));
@@ -304,17 +349,19 @@ export function FocusPage() {
           setMode('shortBreak');
           setTimeLeft(getDuration('shortBreak'));
         }
+        dispatch({ type: 'UPDATE_TIMER_STATE', payload: undefined });
       }, 100);
     } else {
-      // После перерыва - обратно к фокусу
       setMode('focus');
       setTimeLeft(getDuration('focus'));
+      dispatch({ type: 'UPDATE_TIMER_STATE', payload: undefined });
     }
   }, [mode, sessionsCompleted, settings.sessionsUntilLongBreak, getDuration, dispatch, currentTask, playSound]);
   
   // Изменение длительности фокуса
   const handleSetFocusDuration = useCallback((minutes: number) => {
     if (!isRunning && mode === 'focus') {
+      setFocusDuration(minutes);
       setTimeLeft(minutes * 60);
     }
   }, [isRunning, mode]);
@@ -323,9 +370,30 @@ export function FocusPage() {
   const handleSetMode = useCallback((newMode: TimerMode) => {
     if (!isRunning) {
       setMode(newMode);
-      setTimeLeft(getDuration(newMode));
+      if (newMode === 'focus') {
+        setTimeLeft(focusDuration * 60);
+      } else {
+        setTimeLeft(getDuration(newMode));
+      }
     }
-  }, [isRunning, getDuration]);
+  }, [isRunning, getDuration, focusDuration]);
+  
+  // Обработка свайпа для показа/скрытия элементов
+  const touchStartY = useRef(0);
+  
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+  
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isRunning) return;
+    
+    const deltaY = touchStartY.current - e.changedTouches[0].clientY;
+    
+    if (Math.abs(deltaY) > 50) {
+      setShowExtras(deltaY < 0); // свайп вниз - показать, вверх - скрыть
+    }
+  };
   
   // Тик таймера
   useEffect(() => {
@@ -362,8 +430,8 @@ export function FocusPage() {
   }, [timeLeft, isRunning, mode]);
   
   // SVG параметры для кольца
-  const size = 196; // Уменьшено на 30% (было 280)
-  const strokeWidth = 8; // Пропорционально уменьшено
+  const size = 196;
+  const strokeWidth = 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (progress / 100) * circumference;
@@ -380,31 +448,37 @@ export function FocusPage() {
         </button>
       }
     >
-      <div className="focus-page">
+      <div 
+        className={`focus-page ${isRunning && !showExtras ? 'minimal' : ''}`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* Режимы */}
-        <div className="focus-modes">
-          <button 
-            className={`focus-mode-btn ${mode === 'focus' ? 'active' : ''}`}
-            onClick={() => handleSetMode('focus')}
-            disabled={isRunning}
-          >
-            Фокус
-          </button>
-          <button 
-            className={`focus-mode-btn ${mode === 'shortBreak' ? 'active' : ''}`}
-            onClick={() => handleSetMode('shortBreak')}
-            disabled={isRunning}
-          >
-            Перерыв
-          </button>
-          <button 
-            className={`focus-mode-btn ${mode === 'longBreak' ? 'active' : ''}`}
-            onClick={() => handleSetMode('longBreak')}
-            disabled={isRunning}
-          >
-            Длинный
-          </button>
-        </div>
+        {(!isRunning || showExtras) && (
+          <div className="focus-modes">
+            <button 
+              className={`focus-mode-btn ${mode === 'focus' ? 'active' : ''}`}
+              onClick={() => handleSetMode('focus')}
+              disabled={isRunning}
+            >
+              Фокус
+            </button>
+            <button 
+              className={`focus-mode-btn ${mode === 'shortBreak' ? 'active' : ''}`}
+              onClick={() => handleSetMode('shortBreak')}
+              disabled={isRunning}
+            >
+              Перерыв
+            </button>
+            <button 
+              className={`focus-mode-btn ${mode === 'longBreak' ? 'active' : ''}`}
+              onClick={() => handleSetMode('longBreak')}
+              disabled={isRunning}
+            >
+              Длинный
+            </button>
+          </div>
+        )}
         
         {/* Таймер */}
         <div className="focus-timer-container">
@@ -441,16 +515,19 @@ export function FocusPage() {
               {formatTime(timeLeft)}
             </span>
             <span className="focus-timer-mode">{getModeName()}</span>
+            {currentTask && isRunning && !showExtras && (
+              <span className="focus-timer-task">{currentTask}</span>
+            )}
           </div>
         </div>
         
-        {/* Пресеты (только для фокуса) */}
-        {mode === 'focus' && !isRunning && (
+        {/* Пресеты (только для фокуса и не во время работы) */}
+        {mode === 'focus' && (!isRunning || showExtras) && !isRunning && (
           <div className="focus-presets">
             {PRESETS.map(preset => (
               <button
                 key={preset.value}
-                className={`focus-preset-btn ${timeLeft === preset.value * 60 ? 'active' : ''}`}
+                className={`focus-preset-btn ${focusDuration === preset.value ? 'active' : ''}`}
                 onClick={() => handleSetFocusDuration(preset.value)}
               >
                 {preset.label}
@@ -460,7 +537,7 @@ export function FocusPage() {
         )}
         
         {/* Задача */}
-        {mode === 'focus' && !isRunning && (
+        {mode === 'focus' && (!isRunning || showExtras) && !isRunning && (
           <div className="focus-task-input">
             <input
               type="text"
@@ -515,21 +592,23 @@ export function FocusPage() {
         </div>
         
         {/* Счётчик сессий */}
-        <div className="focus-sessions">
-          <span className="focus-sessions-label">Сессий сегодня:</span>
-          <div className="focus-sessions-dots">
-            {Array.from({ length: settings.sessionsUntilLongBreak }).map((_, i) => (
-              <span 
-                key={i} 
-                className={`focus-session-dot ${i < (sessionsCompleted % settings.sessionsUntilLongBreak) ? 'completed' : ''}`}
-              />
-            ))}
+        {(!isRunning || showExtras) && (
+          <div className="focus-sessions">
+            <span className="focus-sessions-label">Сессий сегодня:</span>
+            <div className="focus-sessions-dots">
+              {Array.from({ length: settings.sessionsUntilLongBreak }).map((_, i) => (
+                <span 
+                  key={i} 
+                  className={`focus-session-dot ${i < (sessionsCompleted % settings.sessionsUntilLongBreak) ? 'completed' : ''}`}
+                />
+              ))}
+            </div>
+            <span className="focus-sessions-count">{sessionsCompleted}</span>
           </div>
-          <span className="focus-sessions-count">{sessionsCompleted}</span>
-        </div>
+        )}
         
         {/* Статистика за сегодня */}
-        {state.focusSessions && state.focusSessions.length > 0 && (
+        {(!isRunning || showExtras) && state.focusSessions && state.focusSessions.length > 0 && (
           <div className="focus-today-stats">
             <span className="focus-stats-label">Сегодня в фокусе:</span>
             <span className="focus-stats-value">
@@ -541,8 +620,14 @@ export function FocusPage() {
             </span>
           </div>
         )}
+        
+        {/* Подсказка при работе таймера */}
+        {isRunning && !showExtras && (
+          <div className="focus-swipe-hint">
+            Свайп вниз для настроек
+          </div>
+        )}
       </div>
     </Layout>
   );
 }
-

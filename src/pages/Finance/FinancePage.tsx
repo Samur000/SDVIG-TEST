@@ -157,14 +157,14 @@ export function FinancePage() {
             >
               <div className="wallet-card-icon" style={{ backgroundColor: wallet.color + '20', color: wallet.color }}>
                 <WalletIconSVG icon={wallet.icon} color={wallet.color} />
-              </div>
+        </div>
               <div className="wallet-card-info">
                 <span className="wallet-card-name">{wallet.name}</span>
                 <span className="wallet-card-balance">
                   {formatMoney(wallet.balance, wallet.currency)}
                 </span>
-              </div>
-            </div>
+          </div>
+          </div>
           ))}
           
           {/* Кнопка добавления кошелька */}
@@ -283,30 +283,30 @@ export function FinancePage() {
                     {txs.map(tx => {
                       const display = getTransactionDisplay(tx);
                       return (
-                        <div key={tx.id} className="transaction-item">
+                      <div key={tx.id} className="transaction-item">
                           <div 
                             className="transaction-color-indicator" 
                             style={{ backgroundColor: display.color }}
                           />
-                          <div className="transaction-info">
+                        <div className="transaction-info">
                             <span className="transaction-category">{display.title}</span>
                             <span className="transaction-wallet">{display.subtitle}</span>
-                          </div>
-                          <div className="transaction-right">
-                            <span className={`transaction-amount ${tx.type}`}>
-                              {display.amount}
-                            </span>
-                            <button 
-                              className="transaction-delete"
-                              onClick={() => handleDeleteTransaction(tx.id)}
-                            >
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <line x1="18" y1="6" x2="6" y2="18"/>
-                                <line x1="6" y1="6" x2="18" y2="18"/>
-                              </svg>
-                            </button>
-                          </div>
                         </div>
+                        <div className="transaction-right">
+                          <span className={`transaction-amount ${tx.type}`}>
+                              {display.amount}
+                          </span>
+                          <button 
+                            className="transaction-delete"
+                            onClick={() => handleDeleteTransaction(tx.id)}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <line x1="18" y1="6" x2="6" y2="18"/>
+                              <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
                       );
                     })}
                   </div>
