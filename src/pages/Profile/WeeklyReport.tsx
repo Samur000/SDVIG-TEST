@@ -173,25 +173,43 @@ export function WeeklyReport() {
       let dayBalance = 0;
       
       dayTransactions.forEach(t => {
-        const wallet = wallets.find(w => w.id === t.walletId);
-        if (!wallet) return;
-        
-        const currency = wallet.currency || 'RUB';
-        
-        if (t.type === 'income') {
-          incomeByCurrency[currency] = (incomeByCurrency[currency] || 0) + t.amount;
-          if (currency === primaryCurrency) {
-            dayBalance += t.amount;
+        if (t.type === 'transfer') {
+          // Переводы: списание с исходного кошелька - расход, зачисление на целевой - доход
+          const fromWallet = wallets.find(w => w.id === t.walletId);
+          const toWallet = wallets.find(w => w.id === t.toWalletId);
+          
+          if (fromWallet) {
+            const fromCurrency = fromWallet.currency || 'RUB';
+            expenseByCurrency[fromCurrency] = (expenseByCurrency[fromCurrency] || 0) + t.amount;
+            if (fromCurrency === primaryCurrency) {
+              dayBalance -= t.amount;
+            }
           }
-        } else if (t.type === 'expense') {
-          expenseByCurrency[currency] = (expenseByCurrency[currency] || 0) + t.amount;
-          if (currency === primaryCurrency) {
-            dayBalance -= t.amount;
+          
+          if (toWallet) {
+            const toCurrency = toWallet.currency || 'RUB';
+            const toAmount = t.toAmount || t.amount; // Если валюты разные, используем toAmount
+            incomeByCurrency[toCurrency] = (incomeByCurrency[toCurrency] || 0) + toAmount;
+            if (toCurrency === primaryCurrency) {
+              dayBalance += toAmount;
+            }
           }
-        } else if (t.type === 'transfer') {
-          // Переводы не влияют на общий баланс, но влияют на спарклайн
-          if (currency === primaryCurrency) {
-            // Для спарклайна не учитываем переводы
+        } else {
+          const wallet = wallets.find(w => w.id === t.walletId);
+          if (!wallet) return;
+          
+          const currency = wallet.currency || 'RUB';
+          
+          if (t.type === 'income') {
+            incomeByCurrency[currency] = (incomeByCurrency[currency] || 0) + t.amount;
+            if (currency === primaryCurrency) {
+              dayBalance += t.amount;
+            }
+          } else if (t.type === 'expense') {
+            expenseByCurrency[currency] = (expenseByCurrency[currency] || 0) + t.amount;
+            if (currency === primaryCurrency) {
+              dayBalance -= t.amount;
+            }
           }
         }
       });

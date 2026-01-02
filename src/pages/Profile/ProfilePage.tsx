@@ -76,6 +76,39 @@ export function ProfilePage() {
         </button>
       }
     >
+      {/* Блок профиля */}
+      <div className="profile-card">
+        <div className="profile-header">
+          <div className="profile-avatar">
+            {state.profile?.avatar ? (
+              <img src={state.profile.avatar} alt={state.profile.name || 'Профиль'} />
+            ) : (
+              <span>{state.profile?.name?.[0]?.toUpperCase() || '?'}</span>
+            )}
+          </div>
+          <div className="profile-info">
+            <div className="profile-name">
+              {state.profile?.name || 'Не указано'}
+            </div>
+            {state.profile?.bio && (
+              <div className="profile-bio">{state.profile.bio}</div>
+            )}
+          </div>
+        </div>
+        {state.profile?.goals && state.profile.goals.length > 0 && (
+          <div className="profile-goals">
+            <span className="goals-label">Цели</span>
+            <div className="goals-list">
+              {state.profile.goals.map((goal, index) => (
+                <span key={index} className="goal-tag">
+                  {goal}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      
       {/* Недельный отчёт */}
       <WeeklyReport />
       

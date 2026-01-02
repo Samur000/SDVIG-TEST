@@ -1,6 +1,10 @@
 /* Profile card */
 .profile-card {
+  padding: 20px;
   margin-bottom: 20px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
 }
 
 .profile-header {
@@ -63,6 +67,16 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.goal-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--radius-full);
 }
 
 /* Money summary */

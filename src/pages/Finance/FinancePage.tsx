@@ -125,20 +125,25 @@ export function FinancePage() {
     
     if (tx.type === 'transfer') {
       const toWallet = getWallet(tx.toWalletId || '');
+      const toAmount = tx.toAmount || tx.amount;
       return {
         title: `${wallet?.name || '?'} → ${toWallet?.name || '?'}`,
         subtitle: tx.comment || 'Перевод',
-        amount: formatMoney(tx.amount, wallet?.currency),
+        amountFrom: formatMoney(tx.amount, wallet?.currency), // Списано (красным)
+        amountTo: formatMoney(toAmount, toWallet?.currency), // Зачислено (зеленым)
         color: wallet?.color || '#6B7280',
+        wallet: wallet,
+        toWallet: toWallet,
         isTransfer: true
       };
     }
     
     return {
-      title: tx.category,
-      subtitle: tx.comment || wallet?.name || '',
+      title: wallet?.name || 'Неизвестный кошелёк',
+      subtitle: tx.category,
       amount: (tx.type === 'income' ? '+' : '-') + formatMoney(tx.amount, wallet?.currency),
       color: wallet?.color || '#6B7280',
+      wallet: wallet,
       isTransfer: false
     };
   };
@@ -289,13 +294,42 @@ export function FinancePage() {
                             style={{ backgroundColor: display.color }}
                           />
                         <div className="transaction-info">
-                            <span className="transaction-category">{display.title}</span>
+                            <div className="transaction-title-row">
+                              {display.wallet && (
+                                <div 
+                                  className="transaction-wallet-icon"
+                                  style={{ backgroundColor: display.wallet.color + '20', color: display.wallet.color }}
+                                >
+                                  <WalletIconSVG icon={display.wallet.icon} color={display.wallet.color} />
+                                </div>
+                              )}
+                              {display.isTransfer && display.toWallet && (
+                                <div 
+                                  className="transaction-wallet-icon"
+                                  style={{ backgroundColor: display.toWallet.color + '20', color: display.toWallet.color }}
+                                >
+                                  <WalletIconSVG icon={display.toWallet.icon} color={display.toWallet.color} />
+                                </div>
+                              )}
+                              <span className="transaction-category">{display.title}</span>
+                            </div>
                             <span className="transaction-wallet">{display.subtitle}</span>
                         </div>
                         <div className="transaction-right">
-                          <span className={`transaction-amount ${tx.type}`}>
+                          {display.isTransfer ? (
+                            <div className="transfer-amounts">
+                              <span className="transaction-amount transfer-from">
+                                -{display.amountFrom}
+                              </span>
+                              <span className="transaction-amount transfer-to">
+                                +{display.amountTo}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className={`transaction-amount ${tx.type}`}>
                               {display.amount}
-                          </span>
+                            </span>
+                          )}
                           <button 
                             className="transaction-delete"
                             onClick={() => handleDeleteTransaction(tx.id)}

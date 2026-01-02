@@ -344,6 +344,33 @@
   min-width: 0;
 }
 
+.transaction-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.transaction-wallet-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.transaction-wallet-icon .wallet-icon-svg {
+  width: 14px;
+  height: 14px;
+}
+
+.transaction-wallet-icon .wallet-icon-img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
 .transaction-category {
   font-weight: 500;
 }
@@ -380,6 +407,24 @@
 
 .transaction-amount.transfer {
   color: var(--accent);
+}
+
+/* Суммы для переводов */
+.transfer-amounts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.transaction-amount.transfer-from {
+  color: var(--danger, #ef4444);
+  font-size: 15px;
+}
+
+.transaction-amount.transfer-to {
+  color: var(--success, #22c55e);
+  font-size: 15px;
 }
 
 .transaction-delete {
