@@ -294,25 +294,45 @@ export function FinancePage() {
                             style={{ backgroundColor: display.color }}
                           />
                         <div className="transaction-info">
-                            <div className="transaction-title-row">
-                              {display.wallet && (
-                                <div 
-                                  className="transaction-wallet-icon"
-                                  style={{ backgroundColor: display.wallet.color + '20', color: display.wallet.color }}
-                                >
-                                  <WalletIconSVG icon={display.wallet.icon} color={display.wallet.color} />
-                                </div>
-                              )}
-                              {display.isTransfer && display.toWallet && (
-                                <div 
-                                  className="transaction-wallet-icon"
-                                  style={{ backgroundColor: display.toWallet.color + '20', color: display.toWallet.color }}
-                                >
-                                  <WalletIconSVG icon={display.toWallet.icon} color={display.toWallet.color} />
-                                </div>
-                              )}
-                              <span className="transaction-category">{display.title}</span>
-                            </div>
+                            {display.isTransfer ? (
+                              <div className="transaction-title-row">
+                                {display.wallet && (
+                                  <>
+                                    <div 
+                                      className="transaction-wallet-icon"
+                                      style={{ backgroundColor: display.wallet.color + '20', color: display.wallet.color }}
+                                    >
+                                      <WalletIconSVG icon={display.wallet.icon} color={display.wallet.color} size={14} />
+                                    </div>
+                                    <span className="transaction-category">{display.wallet.name || '?'}</span>
+                                  </>
+                                )}
+                                <span className="transfer-arrow">→</span>
+                                {display.toWallet && (
+                                  <>
+                                    <div 
+                                      className="transaction-wallet-icon"
+                                      style={{ backgroundColor: display.toWallet.color + '20', color: display.toWallet.color }}
+                                    >
+                                      <WalletIconSVG icon={display.toWallet.icon} color={display.toWallet.color} size={14} />
+                                    </div>
+                                    <span className="transaction-category">{display.toWallet.name || '?'}</span>
+                                  </>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="transaction-title-row">
+                                {display.wallet && (
+                                  <div 
+                                    className="transaction-wallet-icon"
+                                    style={{ backgroundColor: display.wallet.color + '20', color: display.wallet.color }}
+                                  >
+                                    <WalletIconSVG icon={display.wallet.icon} color={display.wallet.color} size={14} />
+                                  </div>
+                                )}
+                                <span className="transaction-category">{display.title}</span>
+                              </div>
+                            )}
                             <span className="transaction-wallet">{display.subtitle}</span>
                         </div>
                         <div className="transaction-right">

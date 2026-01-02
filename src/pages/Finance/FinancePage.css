@@ -360,7 +360,15 @@
   flex-shrink: 0;
 }
 
+.transfer-arrow {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 4px;
+}
+
 .transaction-wallet-icon .wallet-icon-svg {
+  display: flex;
   width: 14px;
   height: 14px;
 }
