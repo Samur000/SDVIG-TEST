@@ -12,6 +12,7 @@ interface EventFormProps {
 
 export function EventForm({ event, defaultDate, onSave, onCancel }: EventFormProps) {
   const [title, setTitle] = useState(event?.title || '');
+  const [description, setDescription] = useState(event?.description || '');
   const [date, setDate] = useState(event?.date || defaultDate);
   const [time, setTime] = useState(event?.time || '');
   
@@ -22,6 +23,7 @@ export function EventForm({ event, defaultDate, onSave, onCancel }: EventFormPro
     onSave({
       id: event?.id || uuid(),
       title: title.trim(),
+      description: description.trim() || undefined,
       date,
       time: time || undefined,
       completed: event?.completed || false
@@ -38,6 +40,16 @@ export function EventForm({ event, defaultDate, onSave, onCancel }: EventFormPro
           onChange={e => setTitle(e.target.value)}
           placeholder="Например: Встреча с врачом"
           required
+        />
+      </div>
+      
+      <div className="form-group">
+        <label className="form-label">Описание (опционально)</label>
+        <textarea
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          placeholder="Добавьте описание события..."
+          rows={3}
         />
       </div>
       

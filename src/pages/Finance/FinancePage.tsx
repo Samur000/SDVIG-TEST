@@ -295,30 +295,34 @@ export function FinancePage() {
                           />
                         <div className="transaction-info">
                             {display.isTransfer ? (
-                              <div className="transaction-title-row">
-                                {display.wallet && (
-                                  <>
-                                    <div 
-                                      className="transaction-wallet-icon"
-                                      style={{ backgroundColor: display.wallet.color + '20', color: display.wallet.color }}
-                                    >
-                                      <WalletIconSVG icon={display.wallet.icon} color={display.wallet.color} size={14} />
-                                    </div>
-                                    <span className="transaction-category">{display.wallet.name || '?'}</span>
-                                  </>
-                                )}
+                              <div className="transaction-title-row transfer-row">
+                                <div className="transfer-from-part">
+                                  {display.wallet && (
+                                    <>
+                                      <div 
+                                        className="transaction-wallet-icon"
+                                        style={{ backgroundColor: display.wallet.color + '20', color: display.wallet.color }}
+                                      >
+                                        <WalletIconSVG icon={display.wallet.icon} color={display.wallet.color} size={14} />
+                                      </div>
+                                      <span className="transaction-category">{display.wallet.name || '?'}</span>
+                                    </>
+                                  )}
+                                </div>
                                 <span className="transfer-arrow">→</span>
-                                {display.toWallet && (
-                                  <>
-                                    <div 
-                                      className="transaction-wallet-icon"
-                                      style={{ backgroundColor: display.toWallet.color + '20', color: display.toWallet.color }}
-                                    >
-                                      <WalletIconSVG icon={display.toWallet.icon} color={display.toWallet.color} size={14} />
-                                    </div>
-                                    <span className="transaction-category">{display.toWallet.name || '?'}</span>
-                                  </>
-                                )}
+                                <div className="transfer-to-part">
+                                  {display.toWallet && (
+                                    <>
+                                      <div 
+                                        className="transaction-wallet-icon"
+                                        style={{ backgroundColor: display.toWallet.color + '20', color: display.toWallet.color }}
+                                      >
+                                        <WalletIconSVG icon={display.toWallet.icon} color={display.toWallet.color} size={14} />
+                                      </div>
+                                      <span className="transaction-category">{display.toWallet.name || '?'}</span>
+                                    </>
+                                  )}
+                                </div>
                               </div>
                             ) : (
                               <div className="transaction-title-row">

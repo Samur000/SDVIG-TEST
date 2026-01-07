@@ -350,6 +350,41 @@
   gap: 8px;
 }
 
+.transaction-title-row.transfer-row {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.transfer-from-part {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.transfer-from-part .transaction-category {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transfer-to-part {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 100%; /* Всегда переносится на новую строку при нехватке места */
+  min-width: 0;
+  margin-top: 4px;
+}
+
+.transfer-row .transfer-arrow {
+  flex-shrink: 0;
+  margin: 0 4px;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
 .transaction-wallet-icon {
   width: 24px;
   height: 24px;

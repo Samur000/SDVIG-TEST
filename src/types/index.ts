@@ -4,6 +4,7 @@ export type DayOfWeek = 'пн' | 'вт' | 'ср' | 'чт' | 'пт' | 'сб' | '�
 export interface Routine {
   id: string;
   title: string;
+  description?: string;
   time?: string; // "09:00" или интервал "09:00-10:00"
   days: DayOfWeek[];
   icon?: string;
@@ -13,6 +14,7 @@ export interface Routine {
 export interface Event {
   id: string;
   title: string;
+  description?: string;
   date: string; // YYYY-MM-DD
   time?: string;
   icon?: string;
@@ -31,7 +33,11 @@ export interface DayTask {
 // Иконки кошельков
 export type WalletIcon = 
   | 'card' | 'cash' | 'bank' | 'safe' | 'crypto' 
-  | 'sber' | 'tinkoff' | 'home';
+  | 'sber' | 'tinkoff' | 'home'
+  | 'wallet' | 'treasure' | 'money-bag' | 'diamond' | 'gift'
+  | 'briefcase' | 'coin' | 'bills' | 'vault' | 'investment'
+  | 'savings' | 'paypal' | 'visa' | 'mastercard'
+  | 't-bank' | 'sberbank' | 'gazprombank' | 'rosselhozbank' | 'vtb';
 
 // Цвета кошельков (пастельные)
 export type WalletColor = 
@@ -104,7 +110,26 @@ export const WALLET_ICONS: { value: WalletIcon; label: string }[] = [
   { value: 'crypto', label: 'Крипто' },
   { value: 'sber', label: 'Сбер' },
   { value: 'tinkoff', label: 'Тинькофф' },
-  { value: 'home', label: 'Дом' }
+  { value: 'home', label: 'Дом' },
+  { value: 'wallet', label: 'Кошелек' },
+  { value: 'treasure', label: 'Сокровище' },
+  { value: 'money-bag', label: 'Мешок денег' },
+  { value: 'diamond', label: 'Драгоценность' },
+  { value: 'gift', label: 'Подарок' },
+  { value: 'briefcase', label: 'Портфель' },
+  { value: 'coin', label: 'Монета' },
+  { value: 'bills', label: 'Купюры' },
+  { value: 'vault', label: 'Сейф' },
+  { value: 'investment', label: 'Инвестиции' },
+  { value: 'savings', label: 'Сбережения' },
+  { value: 'paypal', label: 'PayPal' },
+  { value: 'visa', label: 'Visa' },
+  { value: 'mastercard', label: 'Mastercard' },
+  { value: 't-bank', label: 'Т-Банк' },
+  { value: 'sberbank', label: 'Сбербанк' },
+  { value: 'gazprombank', label: 'Газпромбанк' },
+  { value: 'rosselhozbank', label: 'Россельхозбанк' },
+  { value: 'vtb', label: 'ВТБ' }
 ];
 
 export interface Wallet {

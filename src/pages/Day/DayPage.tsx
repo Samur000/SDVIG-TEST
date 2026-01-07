@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { Modal } from '../../components/Modal';
 import { Checkbox, EmptyState, useToast } from '../../components/UI';
@@ -15,7 +16,6 @@ import {
 	addDays
 } from '../../utils/date';
 import { v4 as uuid } from 'uuid';
-import { FocusMode } from './FocusMode';
 import { RoutineForm } from './RoutineForm';
 import { EventForm } from './EventForm';
 import { Calendar } from './Calendar';
@@ -28,6 +28,7 @@ const DAY_LABELS: DayOfWeek[] = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб',
 export function DayPage() {
 	const { state, dispatch } = useApp();
 	const { showToast } = useToast();
+	const navigate = useNavigate();
 	const [selectedDate, setSelectedDate] = useState(new Date());
 	const [showRoutineForm, setShowRoutineForm] = useState(false);
 	const [showEventForm, setShowEventForm] = useState(false);
@@ -37,7 +38,6 @@ export function DayPage() {
 	const [editingDayTask, setEditingDayTask] = useState<DayTask | null>(null);
 	const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
 	const [editingEvent, setEditingEvent] = useState<Event | null>(null);
-	const [focusItem, setFocusItem] = useState<{ id: string; title: string; type: 'routine' | 'event' } | null>(null);
 
 	// Свайп-навигация
 	const touchStartX = useRef<number | null>(null);
@@ -442,12 +442,19 @@ export function DayPage() {
 													: handleToggleEvent(item.id)
 												}
 											/>
-											<span className={
-												(type === 'routine' ? isRoutineCompleted(item as Routine) : (item as Event).completed)
-													? 'line-through' : ''
-											}>
-												{item.title}
-											</span>
+											<div className="schedule-item-text">
+												<span className={
+													(type === 'routine' ? isRoutineCompleted(item as Routine) : (item as Event).completed)
+														? 'line-through' : ''
+												}>
+													{item.title}
+												</span>
+												{(item as Routine | Event).description && (
+													<span className="schedule-item-description">
+														{(item as Routine | Event).description}
+													</span>
+												)}
+											</div>
 											{type === 'routine' && (
 												<span className="chip chip-sm">рутина</span>
 											)}
@@ -456,7 +463,22 @@ export function DayPage() {
 											<button
 												className="btn-icon"
 												title="Фокус"
-												onClick={() => setFocusItem({ id: item.id, title: item.title, type })}
+												onClick={() => {
+													// Устанавливаем задачу в таймер и переходим на страницу фокуса
+													dispatch({
+														type: 'UPDATE_TIMER_STATE',
+														payload: {
+															mode: 'focus',
+															timeLeft: 25 * 60, // 25 минут по умолчанию
+															isRunning: false,
+															sessionsCompleted: 0,
+															currentTask: item.title,
+															focusDuration: 25,
+															startedAt: undefined
+														}
+													});
+													navigate('/focus');
+												}}
 											>
 												<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
 													<circle cx="12" cy="12" r="10" />
@@ -581,23 +603,6 @@ export function DayPage() {
 				</form>
 			</Modal>
 
-			{focusItem && (
-				<FocusMode
-					taskId={focusItem.id}
-					taskTitle={focusItem.title}
-					taskType={focusItem.type}
-					dateStr={dateStr}
-					onClose={() => setFocusItem(null)}
-					onComplete={() => {
-						if (focusItem.type === 'routine') {
-							dispatch({ type: 'TOGGLE_ROUTINE', payload: { id: focusItem.id, date: dateStr } });
-						} else {
-							dispatch({ type: 'TOGGLE_EVENT', payload: focusItem.id });
-						}
-						setFocusItem(null);
-					}}
-				/>
-			)}
 		</Layout>
 	);
 }

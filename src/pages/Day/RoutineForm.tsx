@@ -13,6 +13,7 @@ const ALL_DAYS: DayOfWeek[] = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', '
 
 export function RoutineForm({ routine, onSave, onCancel }: RoutineFormProps) {
   const [title, setTitle] = useState(routine?.title || '');
+  const [description, setDescription] = useState(routine?.description || '');
   const [time, setTime] = useState(routine?.time || '');
   const [days, setDays] = useState<DayOfWeek[]>(routine?.days || ALL_DAYS);
   
@@ -31,6 +32,7 @@ export function RoutineForm({ routine, onSave, onCancel }: RoutineFormProps) {
     onSave({
       id: routine?.id || uuid(),
       title: title.trim(),
+      description: description.trim() || undefined,
       time: time || undefined,
       days,
       completed: routine?.completed || {}
@@ -47,6 +49,16 @@ export function RoutineForm({ routine, onSave, onCancel }: RoutineFormProps) {
           onChange={e => setTitle(e.target.value)}
           placeholder="Например: Утренняя зарядка"
           required
+        />
+      </div>
+      
+      <div className="form-group">
+        <label className="form-label">Описание (опционально)</label>
+        <textarea
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          placeholder="Добавьте описание рутины..."
+          rows={3}
         />
       </div>
       

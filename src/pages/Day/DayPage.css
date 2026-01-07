@@ -348,9 +348,22 @@
   margin-bottom: 8px;
 }
 
-.schedule-item-main span:not(.chip) {
+.schedule-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   flex: 1;
+}
+
+.schedule-item-main span:not(.chip):not(.schedule-item-description) {
   font-weight: 500;
+}
+
+.schedule-item-description {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .chip-sm {
