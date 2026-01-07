@@ -43,7 +43,10 @@ export type WalletIcon =
 export type WalletColor = 
   | '#6366F1' | '#8B5CF6' | '#EC4899' | '#EF4444'
   | '#F59E0B' | '#10B981' | '#14B8A6' | '#3B82F6'
-  | '#6B7280' | '#84CC16';
+  | '#6B7280' | '#84CC16'
+  | '#FCD34D' | '#06B6D4' | '#A855F7' | '#FB7185'
+  | '#059669' | '#D97706' | '#C084FC' | '#34D399'
+  | '#FCA5A5' | '#60A5FA';
 
 // Валюты (приоритизированные)
 export type Currency = 
@@ -98,7 +101,10 @@ export const CURRENCIES: Currency[] = [
 export const WALLET_COLORS: WalletColor[] = [
   '#6366F1', '#8B5CF6', '#EC4899', '#EF4444',
   '#F59E0B', '#10B981', '#14B8A6', '#3B82F6',
-  '#6B7280', '#84CC16'
+  '#6B7280', '#84CC16',
+  '#FCD34D', '#06B6D4', '#A855F7', '#FB7185',
+  '#059669', '#D97706', '#C084FC', '#34D399',
+  '#FCA5A5', '#60A5FA'
 ];
 
 // Иконки для выбора
