@@ -57,53 +57,57 @@ export function BreakdownModal({ task, existingSubtasks = [], onSave, onClose }:
           Разбей задачу на маленькие шаги. Что можно сделать прямо сейчас?
         </p>
         
-        <form className="form" onSubmit={handleSubmit}>
-          {subtasks.map((subtask, index) => (
-            <div key={index} className="form-group subtask-input-group">
-              <input
-                type="text"
-                value={subtask}
-                onChange={e => handleChange(index, e.target.value)}
-                placeholder={`Шаг ${index + 1}`}
-                autoFocus={index === subtasks.length - 1}
-              />
+        <form className="form breakdown-form" onSubmit={handleSubmit}>
+          <div className="breakdown-subtasks-list">
+            {subtasks.map((subtask, index) => (
+              <div key={index} className="form-group subtask-input-group">
+                <input
+                  type="text"
+                  value={subtask}
+                  onChange={e => handleChange(index, e.target.value)}
+                  placeholder={`Шаг ${index + 1}`}
+                  autoFocus={index === subtasks.length - 1}
+                />
+                <button 
+                  type="button" 
+                  className="subtask-remove-btn"
+                  onClick={() => handleRemoveSubtask(index)}
+                  title="Удалить шаг"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+          
+          <div className="breakdown-footer">
+            <button 
+              type="button" 
+              className="add-subtask-btn"
+              onClick={handleAddSubtask}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Добавить ещё
+            </button>
+            
+            <div className="form-actions">
+              <button type="button" className="btn" onClick={onClose}>
+                Отмена
+              </button>
               <button 
-                type="button" 
-                className="subtask-remove-btn"
-                onClick={() => handleRemoveSubtask(index)}
-                title="Удалить шаг"
+                type="submit" 
+                className="btn btn-primary filled"
+                disabled={subtasks.every(s => !s.trim())}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
+                {existingSubtasks.length > 0 ? 'Сохранить изменения' : 'Создать подзадачи'}
               </button>
             </div>
-          ))}
-          
-          <button 
-            type="button" 
-            className="add-subtask-btn"
-            onClick={handleAddSubtask}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Добавить ещё
-          </button>
-          
-          <div className="form-actions">
-            <button type="button" className="btn" onClick={onClose}>
-              Отмена
-            </button>
-            <button 
-              type="submit" 
-              className="btn btn-primary filled"
-              disabled={subtasks.every(s => !s.trim())}
-            >
-              {existingSubtasks.length > 0 ? 'Сохранить изменения' : 'Создать подзадачи'}
-            </button>
           </div>
         </form>
       </div>

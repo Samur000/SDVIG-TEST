@@ -131,6 +131,38 @@
   gap: 16px;
 }
 
+.breakdown-form {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(90vh - 200px);
+  gap: 0;
+  position: relative;
+}
+
+.breakdown-subtasks-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.breakdown-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 10;
+}
+
 .breakdown-task {
   padding: 16px;
   background: #F9FAFB;
@@ -156,9 +188,11 @@
 
 /* Subtask input */
 .subtask-input-group {
+  display: flex;
   flex-direction: row;
   align-items: center;
   gap: 8px;
+  flex-direction: row !important;
 }
 
 .subtask-input-group input {
@@ -169,12 +203,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-md);
-  color: var(--muted);
+  color: var(--danger);
   flex-shrink: 0;
   transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 .subtask-remove-btn:hover {
