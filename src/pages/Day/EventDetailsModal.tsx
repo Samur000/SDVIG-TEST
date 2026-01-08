@@ -12,25 +12,48 @@ interface EventDetailsModalProps {
 }
 
 export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDetailsModalProps) {
-  const startTime = typeof event.startTime === 'string' ? new Date(event.startTime) : event.startTime;
-  const endTime = typeof event.endTime === 'string' ? new Date(event.endTime) : event.endTime;
-  
-  const startTimeStr = formatTime(startTime);
-  const endTimeStr = formatTime(endTime);
-  
-  // Вычисляем длительность
-  const duration = endTime.getTime() - startTime.getTime();
-  const hours = Math.floor(duration / (1000 * 60 * 60));
-  const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-  
+  // Поддержка нового формата (startTime/endTime) и старого (date/time)
+  let startTime: Date | undefined;
+  let endTime: Date | undefined;
+  let startTimeStr = '';
+  let endTimeStr = '';
   let durationStr = '';
-  if (hours > 0) {
-    durationStr = `${hours} ч`;
-    if (minutes > 0) {
-      durationStr += ` ${minutes} мин`;
+  let dateStr = '';
+  
+  if (event.startTime && event.endTime) {
+    startTime = typeof event.startTime === 'string' ? new Date(event.startTime) : event.startTime;
+    endTime = typeof event.endTime === 'string' ? new Date(event.endTime) : event.endTime;
+    
+    if (!isNaN(startTime.getTime()) && !isNaN(endTime.getTime())) {
+      startTimeStr = formatTime(startTime);
+      endTimeStr = formatTime(endTime);
+      
+      // Вычисляем длительность
+      const duration = endTime.getTime() - startTime.getTime();
+      const hours = Math.floor(duration / (1000 * 60 * 60));
+      const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (hours > 0) {
+        durationStr = `${hours} ч`;
+        if (minutes > 0) {
+          durationStr += ` ${minutes} мин`;
+        }
+      } else {
+        durationStr = `${minutes} мин`;
+      }
+      
+      dateStr = formatDateFull(startTime);
     }
-  } else {
-    durationStr = `${minutes} мин`;
+  } else if (event.date && event.time) {
+    // Старый формат
+    const eventDate = new Date(event.date + 'T' + event.time);
+    if (!isNaN(eventDate.getTime())) {
+      startTime = eventDate;
+      dateStr = formatDateFull(startTime);
+      startTimeStr = event.time;
+      endTimeStr = '—';
+      durationStr = '—';
+    }
   }
   
   const color = event.color || '#4285F4';
@@ -61,7 +84,7 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
               </svg>
               Дата
             </div>
-            <div className="event-details-item-value">{formatDateFull(startTime)}</div>
+            <div className="event-details-item-value">{dateStr || '—'}</div>
           </div>
           
           <div className="event-details-item">

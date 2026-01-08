@@ -18,6 +18,8 @@ import {
 import { v4 as uuid } from 'uuid';
 import { RoutineForm } from './RoutineForm';
 import { EventForm } from './EventForm';
+import { EventDetailsModal } from './EventDetailsModal';
+import { formatTime } from './CalendarUtils';
 import './DayPage.css';
 import './Forms.css';
 
@@ -36,6 +38,7 @@ export function DayPage() {
 	const [editingDayTask, setEditingDayTask] = useState<DayTask | null>(null);
 	const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
 	const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+	const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
 	// Свайп-навигация
 	const touchStartX = useRef<number | null>(null);
@@ -101,25 +104,50 @@ export function DayPage() {
 	// 3 главные задачи дня
 	const dayTasks = state.dayTasks[dateStr] || [];
 
+	// Функция для получения времени события (для отображения)
+	const getEventTimeDisplay = (event: Event): string => {
+		if (event.startTime && event.endTime) {
+			const startTime = typeof event.startTime === 'string' ? new Date(event.startTime) : event.startTime;
+			const endTime = typeof event.endTime === 'string' ? new Date(event.endTime) : event.endTime;
+			if (!isNaN(startTime.getTime()) && !isNaN(endTime.getTime())) {
+				return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+			}
+		}
+		// Для старых событий без времени
+		if (event.time) {
+			return event.time;
+		}
+		return '—';
+	};
+
+	// Функция для получения времени начала события (для сортировки)
+	const getEventStartTime = (event: Event): string => {
+		if (event.startTime) {
+			const startTime = typeof event.startTime === 'string' ? new Date(event.startTime) : event.startTime;
+			if (!isNaN(startTime.getTime())) {
+				const hours = startTime.getHours().toString().padStart(2, '0');
+				const minutes = startTime.getMinutes().toString().padStart(2, '0');
+				return `${hours}:${minutes}`;
+			}
+		}
+		return event.time || '99:99';
+	};
+
 	// Сортируем все по времени
 	const sortedItems = useMemo(() => {
-		const items: Array<{ type: 'routine' | 'event'; item: Routine | Event; time: string }> = [];
+		const items: Array<{ type: 'routine' | 'event'; item: Routine | Event; time: string; timeDisplay?: string }> = [];
 
 		todayRoutines.forEach(r => {
 			items.push({ type: 'routine', item: r, time: r.time || '99:99' });
 		});
 
 		todayEvents.forEach(e => {
-			// Для нового формата используем startTime
-			if (e.startTime) {
-				const startTime = typeof e.startTime === 'string' ? new Date(e.startTime) : e.startTime;
-				const hours = startTime.getHours().toString().padStart(2, '0');
-				const minutes = startTime.getMinutes().toString().padStart(2, '0');
-				items.push({ type: 'event', item: e, time: `${hours}:${minutes}` });
-			} else {
-				// Для старого формата используем time
-				items.push({ type: 'event', item: e, time: e.time || '99:99' });
-			}
+			items.push({ 
+				type: 'event', 
+				item: e, 
+				time: getEventStartTime(e),
+				timeDisplay: getEventTimeDisplay(e)
+			});
 		});
 
 		return items.sort((a, b) => a.time.localeCompare(b.time));
@@ -450,23 +478,39 @@ export function DayPage() {
 						/>
 					) : (
 						<div className="schedule-list">
-							{sortedItems.map(({ type, item }) => (
-								<div key={item.id} className="schedule-item">
+							{sortedItems.map(({ type, item, timeDisplay }) => {
+								const event = type === 'event' ? (item as Event) : null;
+								const eventColor = event?.color || '#4285F4';
+								
+								return (
+								<div 
+									key={item.id} 
+									className={`schedule-item ${type === 'event' ? 'schedule-item-event' : ''}`}
+									style={type === 'event' ? {
+										backgroundColor: eventColor + '15',
+										borderLeftColor: eventColor,
+										borderLeftWidth: '4px',
+										cursor: 'pointer'
+									} : undefined}
+									onClick={type === 'event' ? () => setSelectedEvent(item as Event) : undefined}
+								>
 									<div className="schedule-item-time">
-										{(item as Routine | Event).time || '—'}
+										{type === 'event' && timeDisplay ? timeDisplay : (item as Routine | Event).time || '—'}
 									</div>
 									<div className="schedule-item-content">
 										<div className="schedule-item-main">
-											<Checkbox
-												checked={type === 'routine'
-													? isRoutineCompleted(item as Routine)
-													: (item as Event).completed
-												}
-												onChange={() => type === 'routine'
-													? handleToggleRoutine(item.id)
-													: handleToggleEvent(item.id)
-												}
-											/>
+											<div onClick={type === 'event' ? (e) => e.stopPropagation() : undefined}>
+												<Checkbox
+													checked={type === 'routine'
+														? isRoutineCompleted(item as Routine)
+														: (item as Event).completed
+													}
+													onChange={() => type === 'routine'
+														? handleToggleRoutine(item.id)
+														: handleToggleEvent(item.id)
+													}
+												/>
+											</div>
 											<div className="schedule-item-text">
 												<span className={
 													(type === 'routine' ? isRoutineCompleted(item as Routine) : (item as Event).completed)
@@ -484,7 +528,10 @@ export function DayPage() {
 												<span className="chip chip-sm">рутина</span>
 											)}
 										</div>
-										<div className="schedule-item-actions">
+										<div 
+											className="schedule-item-actions"
+											onClick={type === 'event' ? (e) => e.stopPropagation() : undefined}
+										>
 											<button
 												className="btn-icon"
 												title="Фокус"
@@ -556,7 +603,8 @@ export function DayPage() {
 										</div>
 									</div>
 								</div>
-							))}
+								);
+							})}
 						</div>
 					)}
 				</div>
@@ -614,6 +662,25 @@ export function DayPage() {
 					</div>
 				</form>
 			</Modal>
+
+			{/* Модальное окно просмотра события */}
+			{selectedEvent && (
+				<EventDetailsModal
+					event={selectedEvent}
+					onClose={() => setSelectedEvent(null)}
+					onEdit={() => {
+						setEditingEvent(selectedEvent);
+						setSelectedEvent(null);
+						setShowEventForm(true);
+					}}
+					onDelete={() => {
+						if (confirm('Удалить событие?')) {
+							handleDeleteEvent(selectedEvent.id);
+							setSelectedEvent(null);
+						}
+					}}
+				/>
+			)}
 
 		</Layout>
 	);

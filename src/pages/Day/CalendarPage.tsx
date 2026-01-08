@@ -105,21 +105,53 @@ export function CalendarPage() {
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
+    touchEndX.current = null;
+    touchEndY.current = null;
   };
   
-  const handleTouchMove = () => {
-    // Не блокируем движение для свайпа
+  const handleTouchMove = (e: React.TouchEvent) => {
+    // Обновляем координаты окончания касания
+    if (touchStartX.current !== null && touchStartY.current !== null) {
+      const currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+      
+      touchEndX.current = currentX;
+      touchEndY.current = currentY;
+      
+      // Определяем направление свайпа
+      const distanceX = Math.abs(currentX - touchStartX.current);
+      const distanceY = Math.abs(currentY - touchStartY.current);
+      
+      // Если это явно горизонтальный свайп (больше горизонтального движения, чем вертикального),
+      // и движение достаточно значительное, блокируем вертикальный скролл
+      if (distanceX > 15 && distanceX > distanceY * 1.5) {
+        // Блокируем скролл при горизонтальном свайпе
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+      }
+    }
   };
   
-  const handleTouchEnd = useCallback(() => {
-    if (!touchStartX.current || !touchEndX.current) return;
-    if (!touchStartY.current || !touchEndY.current) return;
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) {
+      touchStartX.current = null;
+      touchStartY.current = null;
+      touchEndX.current = null;
+      touchEndY.current = null;
+      return;
+    }
     
-    const distanceX = touchEndX.current - touchStartX.current;
-    const distanceY = touchEndY.current - touchStartY.current;
+    // Если touchEndX/touchEndY не были установлены, используем touchStart значения
+    const endX = touchEndX.current ?? touchStartX.current;
+    const endY = touchEndY.current ?? touchStartY.current;
+    
+    const distanceX = endX - touchStartX.current;
+    const distanceY = endY - touchStartY.current;
     
     // Проверяем, что это горизонтальный свайп (не вертикальный скролл)
     if (Math.abs(distanceX) > Math.abs(distanceY) && Math.abs(distanceX) > MIN_SWIPE_DISTANCE) {
+      e.preventDefault();
       if (distanceX > 0) {
         // Свайп вправо - предыдущий период
         navigateWithAnimation('prev');

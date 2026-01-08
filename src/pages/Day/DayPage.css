@@ -326,14 +326,30 @@
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+}
+
+.schedule-item-event {
+  border-left-width: 4px;
+  border-left-style: solid;
+}
+
+.schedule-item-event:hover {
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .schedule-item-event:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .schedule-item-time {
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
-  min-width: 50px;
+  min-width: 80px;
   padding-top: 2px;
+  white-space: nowrap;
 }
 
 .schedule-item-content {
