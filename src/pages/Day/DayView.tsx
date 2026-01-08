@@ -1,14 +1,13 @@
 import { useMemo, useRef, useState, useEffect, Fragment } from 'react';
 import { Event } from '../../types';
-import { formatDate, isSameDay, isToday } from '../../utils/date';
+import { isSameDay } from '../../utils/date';
 import { 
   getEventsForDay, 
   getEventTop, 
   getEventHeight,
   groupConflictingEvents,
   formatTime,
-  getCurrentTimePosition,
-  isCurrentTimeVisible
+  getCurrentTimePosition
 } from './CalendarUtils';
 import './DayView.css';
 
@@ -119,7 +118,7 @@ export function DayView({ date, events, onEventClick }: DayViewProps) {
         
         {/* События */}
         <div className="day-view-events">
-          {eventGroups.map((group, groupIndex) => {
+          {eventGroups.map((group) => {
             const groupWidth = 100 / group.length;
             return group.map((event, eventIndex) => {
               // Пропускаем события без startTime/endTime (старый формат)

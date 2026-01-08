@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { useApp } from '../../store/AppContext';
@@ -8,8 +8,7 @@ import {
   getDayName,
   getMonthName,
   addDays,
-  getWeekDates,
-  isToday
+  getWeekDates
 } from '../../utils/date';
 import { DayView } from './DayView';
 import { WeekView } from './WeekView';
@@ -108,7 +107,7 @@ export function CalendarPage() {
     touchStartY.current = e.touches[0].clientY;
   };
   
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handleTouchMove = () => {
     // Не блокируем движение для свайпа
   };
   

@@ -1,8 +1,7 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Event } from '../../types';
 import { 
   getMonthCalendarDates, 
-  getMonthName, 
   formatDate, 
   isToday, 
   isSameMonth 

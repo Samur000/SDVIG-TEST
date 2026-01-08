@@ -5,7 +5,6 @@ import { EmptyState } from '../../components/UI';
 import { useApp } from '../../store/AppContext';
 import { Idea } from '../../types';
 import { v4 as uuid } from 'uuid';
-import { getToday } from '../../utils/date';
 import './InboxPage.css';
 
 export function InboxPage() {

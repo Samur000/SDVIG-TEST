@@ -220,7 +220,6 @@ export function TasksPage() {
     const subtasks = getSubtasks(task.id);
     const isExpanded = expandedSubtasks.has(task.id);
     const shouldCollapse = subtasks.length > 3;
-    const visibleSubtasks = shouldCollapse && !isExpanded ? [] : subtasks;
     
     return (
       <div key={task.id} className="task-item-wrapper">

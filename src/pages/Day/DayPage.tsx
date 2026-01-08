@@ -52,7 +52,9 @@ export function DayPage() {
 
 		// События
 		state.events.forEach(e => {
-			map[e.date] = true;
+			if (e.date) {
+				map[e.date] = true;
+			}
 		});
 
 		// Задачи дня
