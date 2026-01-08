@@ -23,6 +23,7 @@ const PAGE_OPTIONS: { value: AppPage; label: string }[] = [
   { value: '/', label: 'День' },
   { value: '/finance', label: 'Финансы' },
   { value: '/tasks', label: 'Дела' },
+  { value: '/calendar', label: 'Календарь' },
   { value: '/inbox', label: 'Инбокс' },
   { value: '/profile', label: 'Я' },
 ];

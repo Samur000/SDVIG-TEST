@@ -247,7 +247,7 @@ export type Theme = 'light' | 'dark';
 export type StartPageMode = 'default' | 'last' | 'custom';
 
 // Доступные страницы для выбора
-export type AppPage = '/' | '/finance' | '/tasks' | '/inbox' | '/profile';
+export type AppPage = '/' | '/finance' | '/tasks' | '/inbox' | '/profile' | '/calendar';
 
 export interface Settings {
   theme: Theme;

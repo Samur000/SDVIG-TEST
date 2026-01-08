@@ -16,14 +16,12 @@ interface WeekViewProps {
   events: Event[];
   onEventClick?: (event: Event) => void;
   onDateClick?: (date: Date) => void;
-  onPrevWeek?: () => void;
-  onNextWeek?: () => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const DAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-export function WeekView({ date, events, onEventClick, onDateClick, onPrevWeek, onNextWeek }: WeekViewProps) {
+export function WeekView({ date, events, onEventClick, onDateClick }: WeekViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTimePos, setCurrentTimePos] = useState<number | null>(null);
   
@@ -107,15 +105,6 @@ export function WeekView({ date, events, onEventClick, onDateClick, onPrevWeek, 
     <div className="week-view">
       {/* Шапка с днями недели */}
       <div className="week-view-header">
-        <button 
-          className="week-view-nav-btn week-view-nav-prev"
-          onClick={onPrevWeek}
-          title="Предыдущая неделя"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </button>
         <div className="week-view-header-days">
           {weekDates.map((day, index) => {
             const isCurrentDay = isSameDay(day, today);
@@ -134,15 +123,6 @@ export function WeekView({ date, events, onEventClick, onDateClick, onPrevWeek, 
             );
           })}
         </div>
-        <button 
-          className="week-view-nav-btn week-view-nav-next"
-          onClick={onNextWeek}
-          title="Следующая неделя"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </button>
       </div>
       
       <div className="week-view-body">

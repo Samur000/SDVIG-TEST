@@ -180,15 +180,6 @@ export function CalendarPage() {
     setIsSwiping(false);
   }, [navigateWithAnimation, isSwiping]);
   
-  // Навигация по периодам (с анимацией)
-  const handlePrevPeriod = () => {
-    navigateWithAnimation('prev');
-  };
-  
-  const handleNextPeriod = () => {
-    navigateWithAnimation('next');
-  };
-  
   const handleToday = () => {
     const today = new Date();
     setViewDate(today);
@@ -307,22 +298,6 @@ export function CalendarPage() {
           </button>
         </div>
         
-        {/* Навигация (только для режимов День и Месяц) */}
-        {viewMode !== 'week' && (
-          <div className="calendar-nav">
-            <button className="calendar-nav-btn" onClick={handlePrevPeriod}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
-            </button>
-            <button className="calendar-nav-btn" onClick={handleNextPeriod}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            </button>
-          </div>
-        )}
-        
         {/* Контент в зависимости от режима */}
         <div 
           className={`calendar-content ${isTransitioning ? (animationDirection === 'next' ? 'transitioning-next' : 'transitioning') : ''} ${isSwiping ? 'swiping' : ''}`}
@@ -342,8 +317,6 @@ export function CalendarPage() {
               events={state.events}
               onEventClick={handleEventClick}
               onDateClick={handleDateClick}
-              onPrevWeek={handlePrevPeriod}
-              onNextWeek={handleNextPeriod}
             />
           )}
           {viewMode === 'month' && (
