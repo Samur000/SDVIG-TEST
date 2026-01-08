@@ -40,6 +40,7 @@ export function CalendarPage() {
   const touchStartY = useRef<number | null>(null);
   const touchEndY = useRef<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isSwiping, setIsSwiping] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   
   // Минимальная дистанция для свайпа
@@ -107,6 +108,7 @@ export function CalendarPage() {
     touchStartY.current = e.touches[0].clientY;
     touchEndX.current = null;
     touchEndY.current = null;
+    setIsSwiping(false);
   };
   
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -122,13 +124,20 @@ export function CalendarPage() {
       const distanceX = Math.abs(currentX - touchStartX.current);
       const distanceY = Math.abs(currentY - touchStartY.current);
       
-      // Если это явно горизонтальный свайп (больше горизонтального движения, чем вертикального),
-      // и движение достаточно значительное, блокируем вертикальный скролл
-      if (distanceX > 15 && distanceX > distanceY * 1.5) {
-        // Блокируем скролл при горизонтальном свайпе
+      // Если это горизонтальный свайп (даже небольшой), блокируем вертикальный скролл
+      // Проверяем, что горизонтальное движение больше вертикального и превышает минимальный порог
+      if (distanceX > 8 && distanceX > distanceY) {
+        // Помечаем, что идет горизонтальный свайп
+        if (!isSwiping) {
+          setIsSwiping(true);
+        }
+        // Блокируем вертикальный скролл при горизонтальном свайпе
         if (e.cancelable) {
           e.preventDefault();
         }
+      } else if (isSwiping && distanceY > distanceX * 1.5) {
+        // Если начали вертикальный скролл, отключаем блокировку
+        setIsSwiping(false);
       }
     }
   };
@@ -139,6 +148,7 @@ export function CalendarPage() {
       touchStartY.current = null;
       touchEndX.current = null;
       touchEndY.current = null;
+      setIsSwiping(false);
       return;
     }
     
@@ -151,7 +161,9 @@ export function CalendarPage() {
     
     // Проверяем, что это горизонтальный свайп (не вертикальный скролл)
     if (Math.abs(distanceX) > Math.abs(distanceY) && Math.abs(distanceX) > MIN_SWIPE_DISTANCE) {
-      e.preventDefault();
+      if (e.cancelable) {
+        e.preventDefault();
+      }
       if (distanceX > 0) {
         // Свайп вправо - предыдущий период
         navigateWithAnimation('prev');
@@ -165,7 +177,8 @@ export function CalendarPage() {
     touchEndX.current = null;
     touchStartY.current = null;
     touchEndY.current = null;
-  }, [navigateWithAnimation]);
+    setIsSwiping(false);
+  }, [navigateWithAnimation, isSwiping]);
   
   // Навигация по периодам (с анимацией)
   const handlePrevPeriod = () => {
@@ -312,8 +325,9 @@ export function CalendarPage() {
         
         {/* Контент в зависимости от режима */}
         <div 
-          className={`calendar-content ${isTransitioning ? (animationDirection === 'next' ? 'transitioning-next' : 'transitioning') : ''}`}
+          className={`calendar-content ${isTransitioning ? (animationDirection === 'next' ? 'transitioning-next' : 'transitioning') : ''} ${isSwiping ? 'swiping' : ''}`}
           ref={contentRef}
+          style={isSwiping ? { overflowY: 'hidden', touchAction: 'none' } : undefined}
         >
           {viewMode === 'day' && (
             <DayView 

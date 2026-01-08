@@ -92,6 +92,14 @@
   will-change: opacity, transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  transition: overflow-y 0.1s ease;
+}
+
+/* Отключение скролла во время свайпа */
+.calendar-content.swiping {
+  overflow-y: hidden !important;
+  touch-action: none !important;
+  -webkit-overflow-scrolling: none !important;
 }
 
 /* Анимация перехода при навигации */
