@@ -231,6 +231,34 @@ textarea {
   min-height: 100px;
 }
 
+/* Header buttons */
+.header-back-btn,
+.header-calendar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  color: var(--text);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.header-back-btn:hover,
+.header-calendar-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.header-back-btn svg,
+.header-calendar-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
 select {
   cursor: pointer;
   appearance: none;

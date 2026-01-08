@@ -24,8 +24,21 @@ export function TasksPage() {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [breakdownTask, setBreakdownTask] = useState<Task | null>(null);
   const [showArchive, setShowArchive] = useState(false);
+  const [expandedSubtasks, setExpandedSubtasks] = useState<Set<string>>(new Set());
   
   const today = getToday();
+  
+  const toggleSubtasks = (taskId: string) => {
+    setExpandedSubtasks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(taskId)) {
+        newSet.delete(taskId);
+      } else {
+        newSet.add(taskId);
+      }
+      return newSet;
+    });
+  };
   
   // Форматирование даты создания задачи
   const formatCreatedAt = (isoString: string): string => {
@@ -205,6 +218,9 @@ export function TasksPage() {
   
   const renderTaskItem = (task: Task, isArchived: boolean = false) => {
     const subtasks = getSubtasks(task.id);
+    const isExpanded = expandedSubtasks.has(task.id);
+    const shouldCollapse = subtasks.length > 3;
+    const visibleSubtasks = shouldCollapse && !isExpanded ? [] : subtasks;
     
     return (
       <div key={task.id} className="task-item-wrapper">
@@ -278,16 +294,40 @@ export function TasksPage() {
         </div>
         {subtasks.length > 0 && !isArchived && (
           <div className="subtasks">
-            {subtasks.map(sub => (
-              <div key={sub.id} className="subtask-item">
-                <Checkbox 
-                  checked={sub.completed} 
-                  onChange={() => handleToggleTask(sub.id)}
-                  size="sm"
-                />
-                <span className={sub.completed ? 'line-through' : ''}>{sub.title}</span>
-              </div>
-            ))}
+            <div className={`subtasks-content ${shouldCollapse && !isExpanded ? 'subtasks-collapsed' : ''}`}>
+              {subtasks.map(sub => (
+                <div key={sub.id} className="subtask-item">
+                  <Checkbox 
+                    checked={sub.completed} 
+                    onChange={() => handleToggleTask(sub.id)}
+                    size="sm"
+                  />
+                  <span className={sub.completed ? 'line-through' : ''}>{sub.title}</span>
+                </div>
+              ))}
+            </div>
+            {shouldCollapse && (
+              <button 
+                className="subtasks-toggle"
+                onClick={() => toggleSubtasks(task.id)}
+              >
+                {isExpanded ? (
+                  <>
+                    <span>Свернуть</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="18 15 12 9 6 15"/>
+                    </svg>
+                  </>
+                ) : (
+                  <>
+                    <span>Показать подзадачи</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         )}
       </div>

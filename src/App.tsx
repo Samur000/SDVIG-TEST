@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { AppProvider, useApp } from './store/AppContext';
 import { ToastProvider } from './components/UI';
 import { DayPage } from './pages/Day';
+import { CalendarPage } from './pages/Day/CalendarPage';
 import { FinancePage } from './pages/Finance';
 import { TasksPage } from './pages/Tasks';
 import { InboxPage } from './pages/Inbox';
@@ -79,6 +80,7 @@ function AppRoutes() {
       <RouteTracker />
       <Routes>
         <Route path="/" element={<DayPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/finance" element={<FinancePage />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/inbox" element={<InboxPage />} />

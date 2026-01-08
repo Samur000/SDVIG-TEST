@@ -206,15 +206,39 @@ function reducer(state: AppState, action: Action): AppState {
     case 'MOVE_EVENT_TO_TOMORROW': {
       const event = state.events.find(e => e.id === action.payload);
       if (!event) return state;
-      const currentDate = new Date(event.date + 'T00:00:00');
-      currentDate.setDate(currentDate.getDate() + 1);
-      const newDate = formatLocalDate(currentDate);
-      return {
-        ...state,
-        events: state.events.map(e => 
-          e.id === action.payload ? { ...e, date: newDate } : e
-        )
-      };
+      
+      // Поддержка нового формата (startTime/endTime)
+      if (event.startTime && event.endTime) {
+        const startTime = typeof event.startTime === 'string' ? new Date(event.startTime) : event.startTime;
+        const endTime = typeof event.endTime === 'string' ? new Date(event.endTime) : event.endTime;
+        const duration = endTime.getTime() - startTime.getTime();
+        
+        const newStartTime = new Date(startTime);
+        newStartTime.setDate(newStartTime.getDate() + 1);
+        const newEndTime = new Date(newStartTime.getTime() + duration);
+        
+        return {
+          ...state,
+          events: state.events.map(e => 
+            e.id === action.payload ? { ...e, startTime: newStartTime, endTime: newEndTime } : e
+          )
+        };
+      }
+      
+      // Поддержка старого формата (date) для совместимости
+      if (event.date) {
+        const currentDate = new Date(event.date + 'T00:00:00');
+        currentDate.setDate(currentDate.getDate() + 1);
+        const newDate = formatLocalDate(currentDate);
+        return {
+          ...state,
+          events: state.events.map(e => 
+            e.id === action.payload ? { ...e, date: newDate } : e
+          )
+        };
+      }
+      
+      return state;
     }
 
     // Задачи дня

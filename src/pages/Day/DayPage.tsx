@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { Modal } from '../../components/Modal';
 import { Checkbox, EmptyState, useToast } from '../../components/UI';
@@ -18,10 +18,8 @@ import {
 import { v4 as uuid } from 'uuid';
 import { RoutineForm } from './RoutineForm';
 import { EventForm } from './EventForm';
-import { Calendar } from './Calendar';
 import './DayPage.css';
 import './Forms.css';
-import './Calendar.css';
 
 const DAY_LABELS: DayOfWeek[] = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
 
@@ -29,11 +27,11 @@ export function DayPage() {
 	const { state, dispatch } = useApp();
 	const { showToast } = useToast();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [selectedDate, setSelectedDate] = useState(new Date());
 	const [showRoutineForm, setShowRoutineForm] = useState(false);
 	const [showEventForm, setShowEventForm] = useState(false);
 	const [showDayTaskForm, setShowDayTaskForm] = useState(false);
-	const [showCalendar, setShowCalendar] = useState(false);
 	const [dayTaskTitle, setDayTaskTitle] = useState('');
 	const [editingDayTask, setEditingDayTask] = useState<DayTask | null>(null);
 	const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
@@ -82,11 +80,21 @@ export function DayPage() {
 		[state.routines, dayOfWeek]
 	);
 
-	// События на выбранную дату
-	const todayEvents = useMemo(() =>
-		state.events.filter(e => e.date === dateStr),
-		[state.events, dateStr]
-	);
+	// События на выбранную дату (поддержка старого формата date и нового startTime)
+	const todayEvents = useMemo(() => {
+		return state.events.filter(e => {
+			// Если есть startTime (новый формат)
+			if (e.startTime) {
+				const startTime = typeof e.startTime === 'string' ? new Date(e.startTime) : e.startTime;
+				return formatDate(startTime) === dateStr;
+			}
+			// Если есть date (старый формат для совместимости)
+			if (e.date) {
+				return e.date === dateStr;
+			}
+			return false;
+		});
+	}, [state.events, dateStr]);
 
 	// 3 главные задачи дня
 	const dayTasks = state.dayTasks[dateStr] || [];
@@ -100,7 +108,16 @@ export function DayPage() {
 		});
 
 		todayEvents.forEach(e => {
-			items.push({ type: 'event', item: e, time: e.time || '99:99' });
+			// Для нового формата используем startTime
+			if (e.startTime) {
+				const startTime = typeof e.startTime === 'string' ? new Date(e.startTime) : e.startTime;
+				const hours = startTime.getHours().toString().padStart(2, '0');
+				const minutes = startTime.getMinutes().toString().padStart(2, '0');
+				items.push({ type: 'event', item: e, time: `${hours}:${minutes}` });
+			} else {
+				// Для старого формата используем time
+				items.push({ type: 'event', item: e, time: e.time || '99:99' });
+			}
 		});
 
 		return items.sort((a, b) => a.time.localeCompare(b.time));
@@ -265,17 +282,23 @@ export function DayPage() {
 		}
 	};
 
-	// Выбор даты из календаря
-	const handleCalendarSelect = (date: Date) => {
-		setSelectedDate(date);
-	};
+	// Обновление выбранной даты из location.state (когда возвращаемся с календаря)
+	useEffect(() => {
+		if (location.state?.selectedDate) {
+			setSelectedDate(new Date(location.state.selectedDate));
+		}
+	}, [location.state]);
 
 	return (
 		<Layout
 			title={getDayName(selectedDate)}
 			subtitle={formatDateFull(selectedDate)}
 			headerRight={
-				<button className="header-calendar-btn" onClick={() => setShowCalendar(true)} title="Открыть календарь">
+				<button 
+					className="header-calendar-btn" 
+					onClick={() => navigate('/calendar', { state: { selectedDate } })} 
+					title="Открыть календарь"
+				>
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
 						<rect x="3" y="4" width="18" height="18" rx="2" />
 						<line x1="16" y1="2" x2="16" y2="6" />
@@ -538,19 +561,6 @@ export function DayPage() {
 			</div>
 
 			{/* Модалки */}
-			<Modal
-				isOpen={showCalendar}
-				onClose={() => setShowCalendar(false)}
-				title="Календарь"
-			>
-				<Calendar
-					selectedDate={selectedDate}
-					onSelectDate={handleCalendarSelect}
-					eventsMap={eventsMap}
-					onClose={() => setShowCalendar(false)}
-				/>
-			</Modal>
-
 			<Modal
 				isOpen={showRoutineForm}
 				onClose={() => { setShowRoutineForm(false); setEditingRoutine(null); }}

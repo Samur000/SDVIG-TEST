@@ -15,10 +15,14 @@ export interface Event {
   id: string;
   title: string;
   description?: string;
-  date: string; // YYYY-MM-DD
-  time?: string;
+  startTime: Date | string; // Date или ISO string
+  endTime: Date | string; // Date или ISO string
+  color?: string; // Цвет события (hex)
   icon?: string;
   completed: boolean;
+  // Для обратной совместимости (будет удалено после миграции)
+  date?: string; // YYYY-MM-DD (deprecated)
+  time?: string; // deprecated
 }
 
 export interface DayTask {
@@ -106,6 +110,20 @@ export const WALLET_COLORS: WalletColor[] = [
   '#059669', '#D97706', '#C084FC', '#34D399',
   '#FCA5A5', '#60A5FA'
 ];
+
+// Цвета для событий календаря (как в Google Calendar)
+export type EventColor = 
+  | '#4285F4' | '#34A853' | '#FBBC04' | '#EA4335'
+  | '#9C27B0' | '#009688' | '#FF9800' | '#795548'
+  | '#607D8B' | '#E91E63' | '#00BCD4' | '#4CAF50';
+
+export const EVENT_COLORS: EventColor[] = [
+  '#4285F4', '#34A853', '#FBBC04', '#EA4335',
+  '#9C27B0', '#009688', '#FF9800', '#795548',
+  '#607D8B', '#E91E63', '#00BCD4', '#4CAF50'
+];
+
+export const EVENT_COLOR_DEFAULT: EventColor = '#4285F4';
 
 // Иконки для выбора
 export const WALLET_ICONS: { value: WalletIcon; label: string }[] = [

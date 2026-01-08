@@ -34,14 +34,36 @@ export function BreakdownModal({ task, existingSubtasks = [], onSave, onClose }:
   
   const handleRemoveSubtask = (index: number) => {
     const newSubtasks = subtasks.filter((_, i) => i !== index);
-    // Если удалили все, оставляем одно пустое поле
-    setSubtasks(newSubtasks.length > 0 ? newSubtasks : ['']);
+    
+    // Если после удаления остался только один элемент
+    if (newSubtasks.length === 1) {
+      // И этот элемент пустой - удаляем все подзадачи
+      if (!newSubtasks[0].trim()) {
+        onSave(task, []);
+        onClose();
+        return;
+      }
+    }
+    
+    // Если удалили все, удаляем все подзадачи
+    if (newSubtasks.length === 0) {
+      onSave(task, []);
+      onClose();
+      return;
+    }
+    
+    setSubtasks(newSubtasks);
   };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const validSubtasks = subtasks.filter(s => s.trim());
-    if (validSubtasks.length === 0) return;
+    // Если все подзадачи пустые или их нет, удаляем все подзадачи
+    if (validSubtasks.length === 0) {
+      onSave(task, []);
+      onClose();
+      return;
+    }
     onSave(task, validSubtasks);
   };
   
@@ -103,7 +125,7 @@ export function BreakdownModal({ task, existingSubtasks = [], onSave, onClose }:
               <button 
                 type="submit" 
                 className="btn btn-primary filled"
-                disabled={subtasks.every(s => !s.trim())}
+                disabled={subtasks.length === 0}
               >
                 {existingSubtasks.length > 0 ? 'Сохранить изменения' : 'Создать подзадачи'}
               </button>

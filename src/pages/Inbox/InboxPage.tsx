@@ -54,12 +54,20 @@ export function InboxPage() {
   };
   
   const handleAddToSchedule = (idea: Idea) => {
+    const today = new Date();
+    const startTime = new Date(today);
+    startTime.setHours(9, 0, 0, 0); // Начало в 9:00
+    const endTime = new Date(startTime);
+    endTime.setHours(startTime.getHours() + 1); // Конец в 10:00
+    
     dispatch({
       type: 'ADD_EVENT',
       payload: {
         id: uuid(),
         title: idea.text,
-        date: getToday(),
+        startTime,
+        endTime,
+        color: '#4285F4',
         completed: false
       }
     });

@@ -16,6 +16,11 @@
   color: var(--muted);
 }
 
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
 .form-actions {
   display: flex;
   gap: 12px;
