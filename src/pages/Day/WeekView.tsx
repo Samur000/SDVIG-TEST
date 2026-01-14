@@ -152,6 +152,18 @@ export function WeekView({ date, events, onEventClick, onDateClick }: WeekViewPr
             </div>
           )}
           
+          {/* Вертикальные линии-разделители дней */}
+          {weekDates.slice(1).map((day, index) => {
+            const left = ((index + 1) / 7) * 100;
+            return (
+              <div
+                key={`divider-${formatDate(day)}`}
+                className="week-view-day-divider"
+                style={{ left: `${left}%` }}
+              />
+            );
+          })}
+          
           {/* Сетка */}
           <div className="week-view-grid">
             {HOURS.map(hour => (

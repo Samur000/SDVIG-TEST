@@ -153,6 +153,18 @@ week-view/* Week View - 7 колонок */
   pointer-events: none;
 }
 
+/* Вертикальные линии-разделители дней */
+.week-view-day-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .week-view-grid-row-hour {
   position: absolute;
   left: 0;
@@ -174,6 +186,7 @@ week-view/* Week View - 7 колонок */
   flex: 1;
   border-right: 1px solid var(--border);
   height: 1px;
+  opacity: 0.5;
 }
 
 .week-view-grid-cell:last-child {
