@@ -19,12 +19,26 @@
   margin-top: 8px;
 }
 
+.event-details-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .event-details-title {
   font-size: 24px;
   font-weight: 600;
   color: var(--text);
   margin: 0;
   line-height: 1.3;
+  flex: 1;
+  transition: opacity 0.2s ease;
+}
+
+.event-details-title.completed {
+  opacity: 0.6;
+  text-decoration: line-through;
 }
 
 .event-details-info {

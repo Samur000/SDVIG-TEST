@@ -206,6 +206,15 @@ export function CalendarPage() {
     }
   };
   
+  const handleToggleEvent = () => {
+    if (selectedEvent) {
+      dispatch({ type: 'TOGGLE_EVENT', payload: selectedEvent.id });
+      // Обновляем selectedEvent с новым состоянием completed
+      const updatedEvent = { ...selectedEvent, completed: !selectedEvent.completed };
+      setSelectedEvent(updatedEvent);
+    }
+  };
+  
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
     setViewDate(date);
@@ -352,6 +361,7 @@ export function CalendarPage() {
           onClose={() => setSelectedEvent(null)}
           onEdit={handleEditEvent}
           onDelete={handleDeleteEvent}
+          onToggle={handleToggleEvent}
         />
       )}
       

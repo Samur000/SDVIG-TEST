@@ -679,6 +679,12 @@ export function DayPage() {
 							setSelectedEvent(null);
 						}
 					}}
+					onToggle={() => {
+						handleToggleEvent(selectedEvent.id);
+						// Обновляем selectedEvent с новым состоянием completed
+						const updatedEvent = { ...selectedEvent, completed: !selectedEvent.completed };
+						setSelectedEvent(updatedEvent);
+					}}
 				/>
 			)}
 

@@ -1,4 +1,5 @@
 import { Modal } from '../../components/Modal';
+import { Checkbox } from '../../components/UI';
 import { Event } from '../../types';
 import { formatDateFull } from '../../utils/date';
 import { formatTime } from './CalendarUtils';
@@ -9,9 +10,10 @@ interface EventDetailsModalProps {
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onToggle?: () => void;
 }
 
-export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDetailsModalProps) {
+export function EventDetailsModal({ event, onClose, onEdit, onDelete, onToggle }: EventDetailsModalProps) {
   // Поддержка нового формата (startTime/endTime) и старого (date/time)
   let startTime: Date | undefined;
   let endTime: Date | undefined;
@@ -69,7 +71,19 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
         
         {/* Заголовок */}
         <div className="event-details-header">
-          <h2 className="event-details-title">{event.title}</h2>
+          <div className="event-details-title-row">
+            <h2 className={`event-details-title ${event.completed ? 'completed' : ''}`}>
+              {event.title}
+            </h2>
+            {onToggle && (
+              <Checkbox
+                checked={event.completed}
+                onChange={onToggle}
+                size="md"
+                color={color}
+              />
+            )}
+          </div>
         </div>
         
         {/* Информация */}
@@ -117,21 +131,6 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
               </div>
             </div>
           )}
-          
-          <div className="event-details-item">
-            <div className="event-details-item-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-              </svg>
-              Цвет
-            </div>
-            <div className="event-details-item-value">
-              <div 
-                className="event-details-color-preview"
-                style={{ backgroundColor: color }}
-              />
-            </div>
-          </div>
         </div>
         
         {/* Кнопки действий */}
