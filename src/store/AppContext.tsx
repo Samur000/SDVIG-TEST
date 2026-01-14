@@ -227,15 +227,15 @@ function reducer(state: AppState, action: Action): AppState {
       
       // Поддержка старого формата (date) для совместимости
       if (event.date) {
-        const currentDate = new Date(event.date + 'T00:00:00');
-        currentDate.setDate(currentDate.getDate() + 1);
-        const newDate = formatLocalDate(currentDate);
-        return {
-          ...state,
-          events: state.events.map(e => 
-            e.id === action.payload ? { ...e, date: newDate } : e
-          )
-        };
+      const currentDate = new Date(event.date + 'T00:00:00');
+      currentDate.setDate(currentDate.getDate() + 1);
+      const newDate = formatLocalDate(currentDate);
+      return {
+        ...state,
+        events: state.events.map(e => 
+          e.id === action.payload ? { ...e, date: newDate } : e
+        )
+      };
       }
       
       return state;

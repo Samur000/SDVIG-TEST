@@ -81,15 +81,15 @@ export function BreakdownModal({ task, existingSubtasks = [], onSave, onClose }:
         
         <form className="form breakdown-form" onSubmit={handleSubmit}>
           <div className="breakdown-subtasks-list">
-            {subtasks.map((subtask, index) => (
-              <div key={index} className="form-group subtask-input-group">
-                <input
-                  type="text"
-                  value={subtask}
-                  onChange={e => handleChange(index, e.target.value)}
-                  placeholder={`Шаг ${index + 1}`}
-                  autoFocus={index === subtasks.length - 1}
-                />
+          {subtasks.map((subtask, index) => (
+            <div key={index} className="form-group subtask-input-group">
+              <input
+                type="text"
+                value={subtask}
+                onChange={e => handleChange(index, e.target.value)}
+                placeholder={`Шаг ${index + 1}`}
+                autoFocus={index === subtasks.length - 1}
+              />
                 <button 
                   type="button" 
                   className="subtask-remove-btn"
@@ -101,34 +101,34 @@ export function BreakdownModal({ task, existingSubtasks = [], onSave, onClose }:
                     <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
                   </svg>
                 </button>
-              </div>
-            ))}
+            </div>
+          ))}
           </div>
           
           <div className="breakdown-footer">
-            <button 
-              type="button" 
-              className="add-subtask-btn"
-              onClick={handleAddSubtask}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-              Добавить ещё
+          <button 
+            type="button" 
+            className="add-subtask-btn"
+            onClick={handleAddSubtask}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Добавить ещё
+          </button>
+          
+          <div className="form-actions">
+            <button type="button" className="btn" onClick={onClose}>
+              Отмена
             </button>
-            
-            <div className="form-actions">
-              <button type="button" className="btn" onClick={onClose}>
-                Отмена
-              </button>
-              <button 
-                type="submit" 
-                className="btn btn-primary filled"
+            <button 
+              type="submit" 
+              className="btn btn-primary filled"
                 disabled={subtasks.length === 0}
-              >
+            >
                 {existingSubtasks.length > 0 ? 'Сохранить изменения' : 'Создать подзадачи'}
-              </button>
+            </button>
             </div>
           </div>
         </form>

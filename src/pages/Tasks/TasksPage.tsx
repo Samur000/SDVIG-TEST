@@ -294,16 +294,16 @@ export function TasksPage() {
         {subtasks.length > 0 && !isArchived && (
           <div className="subtasks">
             <div className={`subtasks-content ${shouldCollapse && !isExpanded ? 'subtasks-collapsed' : ''}`}>
-              {subtasks.map(sub => (
-                <div key={sub.id} className="subtask-item">
-                  <Checkbox 
-                    checked={sub.completed} 
-                    onChange={() => handleToggleTask(sub.id)}
-                    size="sm"
-                  />
-                  <span className={sub.completed ? 'line-through' : ''}>{sub.title}</span>
-                </div>
-              ))}
+            {subtasks.map(sub => (
+              <div key={sub.id} className="subtask-item">
+                <Checkbox 
+                  checked={sub.completed} 
+                  onChange={() => handleToggleTask(sub.id)}
+                  size="sm"
+                />
+                <span className={sub.completed ? 'line-through' : ''}>{sub.title}</span>
+              </div>
+            ))}
             </div>
             {shouldCollapse && (
               <button 

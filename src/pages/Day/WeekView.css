@@ -15,7 +15,7 @@ week-view/* Week View - 7 колонок */
   background: var(--bg);
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 0 0 30px;
   gap: 8px;
 }
 
@@ -63,7 +63,7 @@ week-view/* Week View - 7 колонок */
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px 4px;
+  padding: 5px 0 0px;
   cursor: pointer;
   transition: background 0.2s ease;
   min-width: 0;
@@ -74,11 +74,16 @@ week-view/* Week View - 7 колонок */
 }
 
 .week-view-header-day.current {
-  background: var(--accent-soft);
+  border-radius: 7px;
+  background: var(--accent);
+  color: #fff;
+}
+.week-view-header-day.current .week-view-header-day-label{
+  color: #fff;
 }
 
 .week-view-header-day-label {
-  font-size: 11px;
+  font-size: 9px;
   color: var(--muted);
   font-weight: 500;
   text-transform: uppercase;
@@ -86,7 +91,7 @@ week-view/* Week View - 7 колонок */
 }
 
 .week-view-header-day-number {
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text);
   width: 32px;
@@ -112,8 +117,6 @@ week-view/* Week View - 7 колонок */
 /* Колонка с часами */
 .week-view-hours {
   flex-shrink: 0;
-  width: 60px;
-  padding-right: 12px;
   padding-top: 8px;
 }
 
@@ -122,7 +125,6 @@ week-view/* Week View - 7 колонок */
   position: relative;
   display: flex;
   align-items: flex-start;
-  justify-content: flex-end;
 }
 
 .week-view-hour-label {

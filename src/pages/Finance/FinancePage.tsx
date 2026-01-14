@@ -336,7 +336,7 @@ export function FinancePage() {
                                 )}
                                 <span className="transaction-category">{display.title}</span>
                               </div>
-                            )}
+                          )}
                             <span className="transaction-wallet">{display.subtitle}</span>
                         </div>
                         <div className="transaction-right">
@@ -350,9 +350,9 @@ export function FinancePage() {
                               </span>
                             </div>
                           ) : (
-                            <span className={`transaction-amount ${tx.type}`}>
+                          <span className={`transaction-amount ${tx.type}`}>
                               {display.amount}
-                            </span>
+                          </span>
                           )}
                           <button 
                             className="transaction-delete"
