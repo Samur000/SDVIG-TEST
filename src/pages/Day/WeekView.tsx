@@ -16,12 +16,13 @@ interface WeekViewProps {
   events: Event[];
   onEventClick?: (event: Event) => void;
   onDateClick?: (date: Date) => void;
+  onEventMove?: (eventId: string, newStartTime: Date, newEndTime: Date) => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const DAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-export function WeekView({ date, events, onEventClick, onDateClick }: WeekViewProps) {
+export function WeekView({ date, events, onEventClick, onDateClick, onEventMove }: WeekViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTimePos, setCurrentTimePos] = useState<number | null>(null);
   
@@ -140,7 +141,41 @@ export function WeekView({ date, events, onEventClick, onDateClick }: WeekViewPr
         </div>
         
         {/* Область контента */}
-        <div className="week-view-content" ref={containerRef}>
+        <div 
+          className="week-view-content" 
+          ref={containerRef}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            const eventId = e.dataTransfer.getData('eventId');
+            const eventDuration = parseInt(e.dataTransfer.getData('duration'), 10);
+            
+            if (eventId && containerRef.current && onEventMove) {
+              const container = containerRef.current;
+              const rect = container.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top + container.scrollTop;
+              
+              // Определяем день недели на основе X координаты
+              const containerWidth = rect.width;
+              const dayWidth = containerWidth / 7;
+              const dayIndex = Math.max(0, Math.min(6, Math.floor(x / dayWidth)));
+              const targetDay = weekDates[dayIndex];
+              
+              // Вычисляем новое время на основе Y координаты (1 пиксель = 1 минута)
+              const newMinutes = Math.max(0, Math.min(1440, Math.round(y)));
+              const newStartTime = new Date(targetDay);
+              newStartTime.setHours(0, newMinutes, 0, 0);
+              
+              const newEndTime = new Date(newStartTime.getTime() + eventDuration);
+              
+              onEventMove(eventId, newStartTime, newEndTime);
+            }
+          }}
+        >
           {/* Линия текущего времени */}
           {currentTimePos !== null && isCurrentWeek && (
             <div 
@@ -237,19 +272,53 @@ export function WeekView({ date, events, onEventClick, onDateClick }: WeekViewPr
                       const eventWidth = groupWidth;
                       const color = event.color || '#4285F4';
                       
+                      // Вычисляем длительность события
+                      const duration = endTime.getTime() - startTime.getTime();
+                      
+                      // Обработчик начала перетаскивания
+                      const handleDragStart = (e: React.DragEvent) => {
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('eventId', event.id);
+                        e.dataTransfer.setData('duration', duration.toString());
+                        (e.currentTarget as HTMLElement).style.opacity = '0.5';
+                      };
+                      
+                      // Обработчик окончания перетаскивания
+                      const handleDragEnd = (e: React.DragEvent) => {
+                        (e.currentTarget as HTMLElement).style.opacity = '1';
+                        // Помечаем, что только что было перетаскивание
+                        (e.currentTarget as HTMLElement).setAttribute('data-just-dragged', 'true');
+                        setTimeout(() => {
+                          (e.currentTarget as HTMLElement).removeAttribute('data-just-dragged');
+                        }, 100);
+                      };
+                      
                       return (
                         <div
                           key={event.id}
                           className="week-view-event"
+                          draggable={!!onEventMove}
+                          onDragStart={handleDragStart}
+                          onDragEnd={handleDragEnd}
                           style={{
                             top: `${top}px`,
                             left: `${eventLeft}%`,
                             width: `${eventWidth}%`,
                             height: `${height}px`,
                             borderLeftColor: color,
-                            backgroundColor: color + '20'
+                            backgroundColor: color + '20',
+                            cursor: onEventMove ? 'move' : 'pointer'
                           }}
-                          onClick={() => onEventClick?.(event)}
+                          onClick={(e) => {
+                            // Предотвращаем клик сразу после drag
+                            if ((e.target as HTMLElement).closest('.week-view-event')?.getAttribute('data-just-dragged') === 'true') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              (e.target as HTMLElement).closest('.week-view-event')?.removeAttribute('data-just-dragged');
+                              return;
+                            }
+                            onEventClick?.(event);
+                          }}
                         >
                           <div className="week-view-event-content">
                             <div className="week-view-event-title">{event.title}</div>

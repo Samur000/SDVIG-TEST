@@ -233,6 +233,18 @@ export function CalendarPage() {
     setEditingEvent(null);
   };
   
+  const handleEventMove = (eventId: string, newStartTime: Date, newEndTime: Date) => {
+    const event = state.events.find(e => e.id === eventId);
+    if (event) {
+      const updatedEvent: Event = {
+        ...event,
+        startTime: newStartTime,
+        endTime: newEndTime
+      };
+      dispatch({ type: 'UPDATE_EVENT', payload: updatedEvent });
+    }
+  };
+  
   // Получение заголовка в зависимости от режима
   const getHeaderTitle = () => {
     if (viewMode === 'day') {
@@ -318,6 +330,7 @@ export function CalendarPage() {
               date={selectedDate}
               events={state.events}
               onEventClick={handleEventClick}
+              onEventMove={handleEventMove}
             />
           )}
           {viewMode === 'week' && (
@@ -326,6 +339,7 @@ export function CalendarPage() {
               events={state.events}
               onEventClick={handleEventClick}
               onDateClick={handleDateClick}
+              onEventMove={handleEventMove}
             />
           )}
           {viewMode === 'month' && (

@@ -15,11 +15,12 @@ interface DayViewProps {
   date: Date;
   events: Event[];
   onEventClick?: (event: Event) => void;
+  onEventMove?: (eventId: string, newStartTime: Date, newEndTime: Date) => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
-export function DayView({ date, events, onEventClick }: DayViewProps) {
+export function DayView({ date, events, onEventClick, onEventMove }: DayViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTimePos, setCurrentTimePos] = useState<number | null>(null);
   const isCurrentDay = isSameDay(date, new Date());
@@ -85,7 +86,34 @@ export function DayView({ date, events, onEventClick }: DayViewProps) {
         </div>
       </div>
       
-      <div className="day-view-content" ref={containerRef}>
+      <div 
+        className="day-view-content" 
+        ref={containerRef}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          const eventId = e.dataTransfer.getData('eventId');
+          const eventDuration = parseInt(e.dataTransfer.getData('duration'), 10);
+          
+          if (eventId && containerRef.current && onEventMove) {
+            const container = containerRef.current;
+            const rect = container.getBoundingClientRect();
+            const y = e.clientY - rect.top + container.scrollTop;
+            
+            // Вычисляем новое время на основе Y координаты (1 пиксель = 1 минута)
+            const newMinutes = Math.max(0, Math.min(1440, Math.round(y)));
+            const newStartTime = new Date(date);
+            newStartTime.setHours(0, newMinutes, 0, 0);
+            
+            const newEndTime = new Date(newStartTime.getTime() + eventDuration);
+            
+            onEventMove(eventId, newStartTime, newEndTime);
+          }
+        }}
+      >
         {/* Линия текущего времени */}
         {isCurrentDay && currentTimePos !== null && (
           <div 
@@ -140,19 +168,59 @@ export function DayView({ date, events, onEventClick }: DayViewProps) {
               const width = groupWidth;
               const color = event.color || '#4285F4';
               
+              // Вычисляем длительность события
+              const duration = endTime.getTime() - startTime.getTime();
+              
+              // Обработчик начала перетаскивания
+              const handleDragStart = (e: React.DragEvent) => {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('eventId', event.id);
+                e.dataTransfer.setData('duration', duration.toString());
+                (e.currentTarget as HTMLElement).style.opacity = '0.5';
+              };
+              
+              // Обработчик окончания перетаскивания
+              const handleDragEnd = (e: React.DragEvent) => {
+                (e.currentTarget as HTMLElement).style.opacity = '1';
+                // Помечаем, что только что было перетаскивание
+                (e.currentTarget as HTMLElement).setAttribute('data-just-dragged', 'true');
+                setTimeout(() => {
+                  (e.currentTarget as HTMLElement).removeAttribute('data-just-dragged');
+                }, 100);
+              };
+              
+              // Обработчик перетаскивания над контейнером
+              const handleDragOver = (e: React.DragEvent) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+              };
+              
               return (
                 <div
                   key={event.id}
                   className="day-view-event"
+                  draggable={!!onEventMove}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
                   style={{
                     top: `${top}px`,
                     left: `${left}%`,
                     width: `${width}%`,
                     height: `${height}px`,
                     borderLeftColor: color,
-                    backgroundColor: color + '20'
+                    backgroundColor: color + '20',
+                    cursor: onEventMove ? 'move' : 'pointer'
                   }}
-                  onClick={() => onEventClick?.(event)}
+                  onClick={(e) => {
+                    // Предотвращаем клик сразу после drag
+                    if ((e.target as HTMLElement).closest('.day-view-event')?.getAttribute('data-just-dragged') === 'true') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      (e.target as HTMLElement).closest('.day-view-event')?.removeAttribute('data-just-dragged');
+                      return;
+                    }
+                    onEventClick?.(event);
+                  }}
                 >
                   <div className="day-view-event-content">
                     <div className="day-view-event-title">{event.title}</div>
