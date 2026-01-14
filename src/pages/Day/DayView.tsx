@@ -189,12 +189,6 @@ export function DayView({ date, events, onEventClick, onEventMove }: DayViewProp
                 }, 100);
               };
               
-              // Обработчик перетаскивания над контейнером
-              const handleDragOver = (e: React.DragEvent) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-              };
-              
               return (
                 <div
                   key={event.id}
