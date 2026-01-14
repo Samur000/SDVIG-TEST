@@ -41,6 +41,7 @@ export function CalendarPage() {
   const touchEndY = useRef<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [isDraggingEvent, setIsDraggingEvent] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   
   // Минимальная дистанция для свайпа
@@ -104,6 +105,9 @@ export function CalendarPage() {
   
   // Обработчики свайпов
   const handleTouchStart = (e: React.TouchEvent) => {
+    // Не обрабатываем свайп, если идет перетаскивание события
+    if (isDraggingEvent) return;
+    
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     touchEndX.current = null;
@@ -112,6 +116,9 @@ export function CalendarPage() {
   };
   
   const handleTouchMove = (e: React.TouchEvent) => {
+    // Не обрабатываем свайп, если идет перетаскивание события
+    if (isDraggingEvent) return;
+    
     // Обновляем координаты окончания касания
     if (touchStartX.current !== null && touchStartY.current !== null) {
       const currentX = e.touches[0].clientX;
@@ -143,6 +150,9 @@ export function CalendarPage() {
   };
   
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Не обрабатываем свайп, если идет перетаскивание события
+    if (isDraggingEvent) return;
+    
     if (touchStartX.current === null || touchStartY.current === null) {
       touchStartX.current = null;
       touchStartY.current = null;
@@ -178,7 +188,7 @@ export function CalendarPage() {
     touchStartY.current = null;
     touchEndY.current = null;
     setIsSwiping(false);
-  }, [navigateWithAnimation, isSwiping]);
+  }, [navigateWithAnimation, isDraggingEvent]);
   
   const handleToday = () => {
     const today = new Date();
@@ -340,6 +350,8 @@ export function CalendarPage() {
               onEventClick={handleEventClick}
               onDateClick={handleDateClick}
               onEventMove={handleEventMove}
+              onDragStart={() => setIsDraggingEvent(true)}
+              onDragEnd={() => setIsDraggingEvent(false)}
             />
           )}
           {viewMode === 'month' && (

@@ -17,14 +17,17 @@ interface WeekViewProps {
   onEventClick?: (event: Event) => void;
   onDateClick?: (date: Date) => void;
   onEventMove?: (eventId: string, newStartTime: Date, newEndTime: Date) => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const DAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-export function WeekView({ date, events, onEventClick, onDateClick, onEventMove }: WeekViewProps) {
+export function WeekView({ date, events, onEventClick, onDateClick, onEventMove, onDragStart, onDragEnd }: WeekViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTimePos, setCurrentTimePos] = useState<number | null>(null);
+  const [draggingEvent, setDraggingEvent] = useState<{ id: string; startY: number; startX: number; duration: number; dayIndex: number; currentY: number; currentX: number; offsetY: number; offsetX: number } | null>(null);
   
   const weekDates = useMemo(() => getWeekDates(date), [date]);
   
@@ -175,6 +178,22 @@ export function WeekView({ date, events, onEventClick, onDateClick, onEventMove 
               onEventMove(eventId, newStartTime, newEndTime);
             }
           }}
+          onTouchMove={(e) => {
+            // Обновляем позицию перетаскиваемого события
+            if (draggingEvent && containerRef.current) {
+              const touch = e.touches[0];
+              const container = containerRef.current;
+              const rect = container.getBoundingClientRect();
+              const x = touch.clientX - rect.left;
+              const y = touch.clientY - rect.top + container.scrollTop;
+              setDraggingEvent({
+                ...draggingEvent,
+                currentY: y,
+                currentX: x
+              });
+              e.preventDefault();
+            }
+          }}
         >
           {/* Линия текущего времени */}
           {currentTimePos !== null && isCurrentWeek && (
@@ -238,21 +257,15 @@ export function WeekView({ date, events, onEventClick, onDateClick, onEventMove 
           
           {/* События */}
           <div className="week-view-events">
-            {weekDates.map((day, dayIndex) => {
+            {weekDates.flatMap((day, dayIndex) => {
               const dateStr = formatDate(day);
               const dayEvents = eventsByDay[dateStr] || [];
               const eventGroups = groupConflictingEvents(dayEvents);
-              const left = (100 / 7) * dayIndex;
+              const dayLeft = (100 / 7) * dayIndex;
               
-              return (
-                <div 
-                  key={dateStr} 
-                  className="week-view-day-column"
-                  style={{ left: `${left}%`, width: `${100 / 7}%` }}
-                >
-                  {eventGroups.map((group) => {
-                    const groupWidth = 100 / group.length;
-                    return group.map((event, eventIndex) => {
+              return eventGroups.flatMap((group) => {
+                const groupWidth = 100 / group.length;
+                return group.map((event, eventIndex) => {
                       // Пропускаем события без startTime/endTime (старый формат)
                       if (!event.startTime || !event.endTime) {
                         return null;
@@ -268,14 +281,41 @@ export function WeekView({ date, events, onEventClick, onDateClick, onEventMove 
                       
                       const top = getEventTop(startTime);
                       const height = getEventHeight(startTime, endTime);
-                      const eventLeft = (groupWidth * eventIndex);
+                      const eventLeftInGroup = (groupWidth * eventIndex);
                       const eventWidth = groupWidth;
                       const color = event.color || '#4285F4';
                       
+                      // Определяем день события
+                      const eventDayIndex = weekDates.findIndex(d => isSameDay(d, startTime));
+                      
+                      // Вычисляем абсолютную позицию левого края события в процентах от контейнера
+                      const dayWidthPercent = 100 / 7;
+                      const eventLeft = dayLeft + (eventLeftInGroup / 100) * dayWidthPercent;
+                      
                       // Вычисляем длительность события
                       const duration = endTime.getTime() - startTime.getTime();
+                      const isDragging = draggingEvent?.id === event.id;
                       
-                      // Обработчик начала перетаскивания
+                      // Вычисляем позицию для визуального отображения при перетаскивании
+                      // Точка соприкосновения (палец) остается в том же месте относительно элемента
+                      let displayTop = top;
+                      let displayLeft = eventLeft;
+                      if (isDragging && draggingEvent) {
+                        // Вычисляем позицию верхнего края элемента: позиция пальца минус смещение
+                        displayTop = Math.max(0, Math.min(1440 - height, draggingEvent.currentY - draggingEvent.offsetY));
+                        // Определяем новый день на основе X координаты с учетом смещения
+                        if (containerRef.current) {
+                          const containerWidth = containerRef.current.getBoundingClientRect().width;
+                          const dayWidth = containerWidth / 7;
+                          // Вычисляем позицию левого края элемента: позиция пальца минус смещение
+                          const eventLeftPx = draggingEvent.currentX - draggingEvent.offsetX;
+                          const newDayIndex = Math.max(0, Math.min(6, Math.floor(eventLeftPx / dayWidth)));
+                          // Сохраняем позицию внутри группы при перемещении между днями
+                          displayLeft = (100 / 7) * newDayIndex + (eventLeftInGroup / 100) * dayWidthPercent;
+                        }
+                      }
+                      
+                      // Обработчик начала перетаскивания (desktop)
                       const handleDragStart = (e: React.DragEvent) => {
                         e.dataTransfer.effectAllowed = 'move';
                         e.dataTransfer.setData('eventId', event.id);
@@ -283,7 +323,7 @@ export function WeekView({ date, events, onEventClick, onDateClick, onEventMove 
                         (e.currentTarget as HTMLElement).style.opacity = '0.5';
                       };
                       
-                      // Обработчик окончания перетаскивания
+                      // Обработчик окончания перетаскивания (desktop)
                       const handleDragEnd = (e: React.DragEvent) => {
                         (e.currentTarget as HTMLElement).style.opacity = '1';
                         // Помечаем, что только что было перетаскивание
@@ -293,6 +333,104 @@ export function WeekView({ date, events, onEventClick, onDateClick, onEventMove 
                         }, 100);
                       };
                       
+                      // Обработчики для touch (мобильные устройства)
+                      const handleTouchStart = (e: React.TouchEvent) => {
+                        if (!onEventMove || !containerRef.current) return;
+                        const touch = e.touches[0];
+                        const container = containerRef.current;
+                        const rect = container.getBoundingClientRect();
+                        const touchX = touch.clientX - rect.left;
+                        const touchY = touch.clientY - rect.top + container.scrollTop;
+                        // Вычисляем смещение: насколько палец находится ниже/правее верхнего/левого края элемента
+                        const offsetY = touchY - top;
+                        // Вычисляем абсолютную позицию левого края события в пикселях относительно контейнера
+                        const containerWidth = container.getBoundingClientRect().width;
+                        const eventLeftPx = (eventLeft / 100) * containerWidth;
+                        const offsetX = touchX - eventLeftPx;
+                        setDraggingEvent({
+                          id: event.id,
+                          startY: top,
+                          startX: touchX,
+                          duration: duration,
+                          dayIndex: eventDayIndex,
+                          currentY: touchY,
+                          currentX: touchX,
+                          offsetY: offsetY,
+                          offsetX: offsetX
+                        });
+                        // Отключаем свайп недели при начале перетаскивания
+                        onDragStart?.();
+                        e.preventDefault();
+                        e.stopPropagation();
+                      };
+                      
+                      const handleTouchMove = (e: React.TouchEvent) => {
+                        if (!draggingEvent || draggingEvent.id !== event.id || !containerRef.current) return;
+                        const touch = e.touches[0];
+                        const container = containerRef.current;
+                        const rect = container.getBoundingClientRect();
+                        const touchX = touch.clientX - rect.left;
+                        const touchY = touch.clientY - rect.top + container.scrollTop;
+                        setDraggingEvent({
+                          ...draggingEvent,
+                          currentY: touchY,
+                          currentX: touchX
+                        });
+                        e.preventDefault();
+                        e.stopPropagation();
+                      };
+                      
+                      const handleTouchEnd = (e: React.TouchEvent) => {
+                        if (!draggingEvent || draggingEvent.id !== event.id || !containerRef.current || !onEventMove) {
+                          setDraggingEvent(null);
+                          // Включаем свайп недели обратно
+                          onDragEnd?.();
+                          return;
+                        }
+                        
+                        // Включаем свайп недели обратно
+                        onDragEnd?.();
+                        
+                        const touch = e.changedTouches[0];
+                        const container = containerRef.current;
+                        const rect = container.getBoundingClientRect();
+                        const touchX = touch.clientX - rect.left;
+                        const touchY = touch.clientY - rect.top + container.scrollTop;
+                        
+                        // Вычисляем позицию верхнего края элемента: позиция пальца минус смещение
+                        const newTop = touchY - draggingEvent.offsetY;
+                        
+                        // Определяем день недели на основе X координаты с учетом смещения
+                        const containerWidth = rect.width;
+                        const dayWidth = containerWidth / 7;
+                        // Вычисляем позицию левого края элемента: позиция пальца минус смещение
+                        const eventLeftPx = touchX - draggingEvent.offsetX;
+                        const newDayIndex = Math.max(0, Math.min(6, Math.floor(eventLeftPx / dayWidth)));
+                        const targetDay = weekDates[newDayIndex];
+                        
+                        // Вычисляем новое время на основе верхнего края элемента (1 пиксель = 1 минута)
+                        const newMinutes = Math.max(0, Math.min(1440, Math.round(newTop)));
+                        const newStartTime = new Date(targetDay);
+                        newStartTime.setHours(0, newMinutes, 0, 0);
+                        
+                        const newEndTime = new Date(newStartTime.getTime() + draggingEvent.duration);
+                        
+                        onEventMove(event.id, newStartTime, newEndTime);
+                        setDraggingEvent(null);
+                        
+                        // Включаем свайп недели обратно
+                        onDragEnd?.();
+                        
+                        // Помечаем, что только что было перетаскивание
+                        const eventElement = e.currentTarget as HTMLElement;
+                        eventElement.setAttribute('data-just-dragged', 'true');
+                        setTimeout(() => {
+                          eventElement.removeAttribute('data-just-dragged');
+                        }, 100);
+                        
+                        e.stopPropagation();
+                      };
+                      
                       return (
                         <div
                           key={event.id}
@@ -300,14 +438,20 @@ export function WeekView({ date, events, onEventClick, onDateClick, onEventMove 
                           draggable={!!onEventMove}
                           onDragStart={handleDragStart}
                           onDragEnd={handleDragEnd}
+                          onTouchStart={handleTouchStart}
+                          onTouchMove={handleTouchMove}
+                          onTouchEnd={handleTouchEnd}
                           style={{
-                            top: `${top}px`,
-                            left: `${eventLeft}%`,
-                            width: `${eventWidth}%`,
+                            top: `${displayTop}px`,
+                            left: `${displayLeft}%`,
+                            width: `${(eventWidth / 100) * dayWidthPercent}%`,
                             height: `${height}px`,
                             borderLeftColor: color,
                             backgroundColor: color + '20',
-                            cursor: onEventMove ? 'move' : 'pointer'
+                            cursor: onEventMove ? 'move' : 'pointer',
+                            opacity: isDragging ? 0.5 : 1,
+                            touchAction: 'none',
+                            zIndex: isDragging ? 1000 : 'auto'
                           }}
                           onClick={(e) => {
                             // Предотвращаем клик сразу после drag
@@ -329,9 +473,7 @@ export function WeekView({ date, events, onEventClick, onDateClick, onEventMove 
                         </div>
                       );
                     }).filter(Boolean);
-                  })}
-                </div>
-              );
+                  });
             })}
           </div>
         </div>
