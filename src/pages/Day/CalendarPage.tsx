@@ -43,6 +43,7 @@ export function CalendarPage() {
   const [isSwiping, setIsSwiping] = useState(false);
   const [isDraggingEvent, setIsDraggingEvent] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
   
   // Минимальная дистанция для свайпа
   const MIN_SWIPE_DISTANCE = 50;
@@ -103,92 +104,109 @@ export function CalendarPage() {
     });
   }, [viewMode, viewDate, isTransitioning]);
   
-  // Обработчики свайпов
-  const handleTouchStart = (e: React.TouchEvent) => {
-    // Не обрабатываем свайп, если идет перетаскивание события
-    if (isDraggingEvent) return;
+  // Обработчики свайпов через addEventListener для non-passive обработки
+  useEffect(() => {
+    const element = pageRef.current;
+    if (!element) return;
     
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-    touchEndX.current = null;
-    touchEndY.current = null;
-    setIsSwiping(false);
-  };
-  
-  const handleTouchMove = (e: React.TouchEvent) => {
-    // Не обрабатываем свайп, если идет перетаскивание события
-    if (isDraggingEvent) return;
-    
-    // Обновляем координаты окончания касания
-    if (touchStartX.current !== null && touchStartY.current !== null) {
-      const currentX = e.touches[0].clientX;
-      const currentY = e.touches[0].clientY;
+    const handleTouchStart = (e: TouchEvent) => {
+      // Не обрабатываем свайп, если идет перетаскивание события
+      if (isDraggingEvent) return;
       
-      touchEndX.current = currentX;
-      touchEndY.current = currentY;
-      
-      // Определяем направление свайпа
-      const distanceX = Math.abs(currentX - touchStartX.current);
-      const distanceY = Math.abs(currentY - touchStartY.current);
-      
-      // Если это горизонтальный свайп (даже небольшой), блокируем вертикальный скролл
-      // Проверяем, что горизонтальное движение больше вертикального и превышает минимальный порог
-      if (distanceX > 8 && distanceX > distanceY) {
-        // Помечаем, что идет горизонтальный свайп
-        if (!isSwiping) {
-          setIsSwiping(true);
-        }
-        // Блокируем вертикальный скролл при горизонтальном свайпе
-        if (e.cancelable) {
-          e.preventDefault();
-        }
-      } else if (isSwiping && distanceY > distanceX * 1.5) {
-        // Если начали вертикальный скролл, отключаем блокировку
-        setIsSwiping(false);
-      }
-    }
-  };
-  
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    // Не обрабатываем свайп, если идет перетаскивание события
-    if (isDraggingEvent) return;
-    
-    if (touchStartX.current === null || touchStartY.current === null) {
-      touchStartX.current = null;
-      touchStartY.current = null;
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
       touchEndX.current = null;
       touchEndY.current = null;
       setIsSwiping(false);
-      return;
-    }
+    };
     
-    // Если touchEndX/touchEndY не были установлены, используем touchStart значения
-    const endX = touchEndX.current ?? touchStartX.current;
-    const endY = touchEndY.current ?? touchStartY.current;
+    const handleTouchMove = (e: TouchEvent) => {
+      // Не обрабатываем свайп, если идет перетаскивание события
+      if (isDraggingEvent) return;
+      
+      // Обновляем координаты окончания касания
+      if (touchStartX.current !== null && touchStartY.current !== null) {
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        
+        touchEndX.current = currentX;
+        touchEndY.current = currentY;
+        
+        // Определяем направление свайпа
+        const distanceX = Math.abs(currentX - touchStartX.current);
+        const distanceY = Math.abs(currentY - touchStartY.current);
+        
+        // Если это горизонтальный свайп (даже небольшой), блокируем вертикальный скролл
+        // Проверяем, что горизонтальное движение больше вертикального и превышает минимальный порог
+        if (distanceX > 8 && distanceX > distanceY) {
+          // Помечаем, что идет горизонтальный свайп
+          setIsSwiping(prev => {
+            if (!prev) return true;
+            return prev;
+          });
+          // Блокируем вертикальный скролл при горизонтальном свайпе
+          e.preventDefault();
+        } else {
+          setIsSwiping(prev => {
+            if (prev && distanceY > distanceX * 1.5) {
+              // Если начали вертикальный скролл, отключаем блокировку
+              return false;
+            }
+            return prev;
+          });
+        }
+      }
+    };
     
-    const distanceX = endX - touchStartX.current;
-    const distanceY = endY - touchStartY.current;
-    
-    // Проверяем, что это горизонтальный свайп (не вертикальный скролл)
-    if (Math.abs(distanceX) > Math.abs(distanceY) && Math.abs(distanceX) > MIN_SWIPE_DISTANCE) {
-      if (e.cancelable) {
+    const handleTouchEnd = (e: TouchEvent) => {
+      // Не обрабатываем свайп, если идет перетаскивание события
+      if (isDraggingEvent) return;
+      
+      if (touchStartX.current === null || touchStartY.current === null) {
+        touchStartX.current = null;
+        touchStartY.current = null;
+        touchEndX.current = null;
+        touchEndY.current = null;
+        setIsSwiping(false);
+        return;
+      }
+      
+      // Если touchEndX/touchEndY не были установлены, используем touchStart значения
+      const endX = touchEndX.current ?? touchStartX.current;
+      const endY = touchEndY.current ?? touchStartY.current;
+      
+      const distanceX = endX - touchStartX.current;
+      const distanceY = endY - touchStartY.current;
+      
+      // Проверяем, что это горизонтальный свайп (не вертикальный скролл)
+      if (Math.abs(distanceX) > Math.abs(distanceY) && Math.abs(distanceX) > MIN_SWIPE_DISTANCE) {
         e.preventDefault();
+        if (distanceX > 0) {
+          // Свайп вправо - предыдущий период
+          navigateWithAnimation('prev');
+        } else {
+          // Свайп влево - следующий период
+          navigateWithAnimation('next');
+        }
       }
-      if (distanceX > 0) {
-        // Свайп вправо - предыдущий период
-        navigateWithAnimation('prev');
-      } else {
-        // Свайп влево - следующий период
-        navigateWithAnimation('next');
-      }
-    }
+      
+      touchStartX.current = null;
+      touchEndX.current = null;
+      touchStartY.current = null;
+      touchEndY.current = null;
+      setIsSwiping(false);
+    };
     
-    touchStartX.current = null;
-    touchEndX.current = null;
-    touchStartY.current = null;
-    touchEndY.current = null;
-    setIsSwiping(false);
-  }, [navigateWithAnimation, isDraggingEvent]);
+    element.addEventListener('touchstart', handleTouchStart, { passive: false });
+    element.addEventListener('touchmove', handleTouchMove, { passive: false });
+    element.addEventListener('touchend', handleTouchEnd, { passive: false });
+    
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart);
+      element.removeEventListener('touchmove', handleTouchMove);
+      element.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isDraggingEvent, navigateWithAnimation]);
   
   const handleToday = () => {
     const today = new Date();
@@ -302,10 +320,8 @@ export function CalendarPage() {
       }
     >
       <div 
+        ref={pageRef}
         className="calendar-page"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         {/* Переключение режимов */}
         <div className="calendar-mode-selector">

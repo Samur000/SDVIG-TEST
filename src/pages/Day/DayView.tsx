@@ -24,7 +24,7 @@ export function DayView({ date, events, onEventClick, onEventMove }: DayViewProp
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTimePos, setCurrentTimePos] = useState<number | null>(null);
   const isCurrentDay = isSameDay(date, new Date());
-  const [draggingEvent, setDraggingEvent] = useState<{ id: string; startY: number; duration: number; currentY: number; offsetY: number } | null>(null);
+  const [draggingEvent, setDraggingEvent] = useState<{ id: string; startY: number; duration: number; currentY: number; offsetY: number; startTime: number; hasMoved: boolean } | null>(null);
   
   // Обновление позиции текущего времени каждую минуту
   useEffect(() => {
@@ -114,19 +114,9 @@ export function DayView({ date, events, onEventClick, onEventMove }: DayViewProp
             onEventMove(eventId, newStartTime, newEndTime);
           }
         }}
-        onTouchMove={(e) => {
-          // Обновляем позицию перетаскиваемого события
-          if (draggingEvent && containerRef.current) {
-            const touch = e.touches[0];
-            const container = containerRef.current;
-            const rect = container.getBoundingClientRect();
-            const y = touch.clientY - rect.top + container.scrollTop;
-            setDraggingEvent({
-              ...draggingEvent,
-              currentY: y
-            });
-            e.preventDefault();
-          }
+        onTouchMove={() => {
+          // Обновление позиции перетаскиваемого события обрабатывается в handleTouchMove каждого события
+          // Не нужно вызывать preventDefault здесь, так как это пассивный обработчик
         }}
       >
         {/* Линия текущего времени */}
@@ -227,9 +217,10 @@ export function DayView({ date, events, onEventClick, onEventMove }: DayViewProp
                   startY: top,
                   duration: duration,
                   currentY: touchY,
-                  offsetY: offsetY
+                  offsetY: offsetY,
+                  startTime: Date.now(),
+                  hasMoved: false
                 });
-                e.preventDefault();
               };
               
               const handleTouchMove = (e: React.TouchEvent) => {
@@ -238,43 +229,71 @@ export function DayView({ date, events, onEventClick, onEventMove }: DayViewProp
                 const container = containerRef.current;
                 const rect = container.getBoundingClientRect();
                 const touchY = touch.clientY - rect.top + container.scrollTop;
+                // Проверяем, было ли движение (больше 5 пикселей)
+                const moved = Math.abs(touchY - draggingEvent.startY) > 5;
                 setDraggingEvent({
                   ...draggingEvent,
-                  currentY: touchY
+                  currentY: touchY,
+                  hasMoved: draggingEvent.hasMoved || moved
                 });
-                e.preventDefault();
               };
               
               const handleTouchEnd = (e: React.TouchEvent) => {
-                if (!draggingEvent || draggingEvent.id !== event.id || !containerRef.current || !onEventMove) {
+                const wasDragging = draggingEvent && draggingEvent.id === event.id;
+                
+                if (!wasDragging) {
+                  // Если не было перетаскивания - это клик
+                  setDraggingEvent(null);
+                  if (onEventClick) {
+                    onEventClick(event);
+                  }
+                  return;
+                }
+                
+                if (!containerRef.current || !onEventMove) {
                   setDraggingEvent(null);
                   return;
                 }
                 
-                const touch = e.changedTouches[0];
-                const container = containerRef.current;
-                const rect = container.getBoundingClientRect();
-                const touchY = touch.clientY - rect.top + container.scrollTop;
+                // Проверяем, было ли движение или длительное удержание
+                const dragDuration = Date.now() - draggingEvent.startTime;
+                const hasMoved = draggingEvent.hasMoved;
+                const wasDrag = hasMoved || dragDuration > 300;
                 
-                // Вычисляем позицию верхнего края элемента: позиция пальца минус смещение
-                const newTop = touchY - draggingEvent.offsetY;
-                
-                // Вычисляем новое время на основе верхнего края элемента (1 пиксель = 1 минута)
-                const newMinutes = Math.max(0, Math.min(1440, Math.round(newTop)));
-                const newStartTime = new Date(date);
-                newStartTime.setHours(0, newMinutes, 0, 0);
-                
-                const newEndTime = new Date(newStartTime.getTime() + draggingEvent.duration);
-                
-                onEventMove(event.id, newStartTime, newEndTime);
-                setDraggingEvent(null);
-                
-                // Помечаем, что только что было перетаскивание
-                const eventElement = e.currentTarget as HTMLElement;
-                eventElement.setAttribute('data-just-dragged', 'true');
-                setTimeout(() => {
-                  eventElement.removeAttribute('data-just-dragged');
-                }, 100);
+                if (wasDrag) {
+                  // Это было перетаскивание
+                  const touch = e.changedTouches[0];
+                  const container = containerRef.current;
+                  const rect = container.getBoundingClientRect();
+                  const touchY = touch.clientY - rect.top + container.scrollTop;
+                  
+                  // Вычисляем позицию верхнего края элемента: позиция пальца минус смещение
+                  const newTop = touchY - draggingEvent.offsetY;
+                  
+                  // Вычисляем новое время на основе верхнего края элемента (1 пиксель = 1 минута)
+                  const newMinutes = Math.max(0, Math.min(1440, Math.round(newTop)));
+                  const newStartTime = new Date(date);
+                  newStartTime.setHours(0, newMinutes, 0, 0);
+                  
+                  const newEndTime = new Date(newStartTime.getTime() + draggingEvent.duration);
+                  
+                  onEventMove(event.id, newStartTime, newEndTime);
+                  
+                  // Помечаем, что только что было перетаскивание
+                  const eventElement = e.currentTarget as HTMLElement;
+                  eventElement.setAttribute('data-just-dragged', 'true');
+                  setTimeout(() => {
+                    eventElement.removeAttribute('data-just-dragged');
+                  }, 500);
+                  
+                  setDraggingEvent(null);
+                } else {
+                  // Если не было движения - это клик
+                  setDraggingEvent(null);
+                  if (onEventClick) {
+                    onEventClick(event);
+                  }
+                }
               };
               
               return (
@@ -297,7 +316,9 @@ export function DayView({ date, events, onEventClick, onEventMove }: DayViewProp
                     cursor: onEventMove ? 'move' : 'pointer',
                     opacity: isDragging ? 0.5 : 1,
                     touchAction: 'none',
-                    zIndex: isDragging ? 1000 : 'auto'
+                    zIndex: isDragging ? 1000 : 'auto',
+                    userSelect: isDragging ? 'none' : 'auto',
+                    WebkitUserSelect: isDragging ? 'none' : 'auto'
                   }}
                   onClick={(e) => {
                     // Предотвращаем клик сразу после drag

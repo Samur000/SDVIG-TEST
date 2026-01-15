@@ -27,7 +27,7 @@ const DAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 export function WeekView({ date, events, onEventClick, onDateClick, onEventMove, onDragStart, onDragEnd }: WeekViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTimePos, setCurrentTimePos] = useState<number | null>(null);
-  const [draggingEvent, setDraggingEvent] = useState<{ id: string; startY: number; startX: number; duration: number; dayIndex: number; currentY: number; currentX: number; offsetY: number; offsetX: number } | null>(null);
+  const [draggingEvent, setDraggingEvent] = useState<{ id: string; startY: number; startX: number; duration: number; dayIndex: number; currentY: number; currentX: number; offsetY: number; offsetX: number; startTime: number; hasMoved: boolean } | null>(null);
   
   const weekDates = useMemo(() => getWeekDates(date), [date]);
   
@@ -356,11 +356,12 @@ export function WeekView({ date, events, onEventClick, onDateClick, onEventMove,
                           currentY: touchY,
                           currentX: touchX,
                           offsetY: offsetY,
-                          offsetX: offsetX
+                          offsetX: offsetX,
+                          startTime: Date.now(),
+                          hasMoved: false
                         });
                         // Отключаем свайп недели при начале перетаскивания
                         onDragStart?.();
-                        e.preventDefault();
                         e.stopPropagation();
                       };
                       
@@ -371,62 +372,86 @@ export function WeekView({ date, events, onEventClick, onDateClick, onEventMove,
                         const rect = container.getBoundingClientRect();
                         const touchX = touch.clientX - rect.left;
                         const touchY = touch.clientY - rect.top + container.scrollTop;
+                        // Проверяем, было ли движение (больше 5 пикселей)
+                        const moved = Math.abs(touchX - draggingEvent.startX) > 5 || Math.abs(touchY - draggingEvent.startY) > 5;
                         setDraggingEvent({
                           ...draggingEvent,
                           currentY: touchY,
-                          currentX: touchX
+                          currentX: touchX,
+                          hasMoved: draggingEvent.hasMoved || moved
                         });
-                        e.preventDefault();
                         e.stopPropagation();
                       };
                       
                       const handleTouchEnd = (e: React.TouchEvent) => {
-                        if (!draggingEvent || draggingEvent.id !== event.id || !containerRef.current || !onEventMove) {
+                        const wasDragging = draggingEvent && draggingEvent.id === event.id;
+                        
+                        if (!wasDragging) {
+                          // Если не было перетаскивания - это клик
                           setDraggingEvent(null);
-                          // Включаем свайп недели обратно
+                          onDragEnd?.();
+                          if (onEventClick) {
+                            onEventClick(event);
+                          }
+                          return;
+                        }
+                        
+                        if (!containerRef.current || !onEventMove) {
+                          setDraggingEvent(null);
                           onDragEnd?.();
                           return;
                         }
                         
-                        // Включаем свайп недели обратно
-                        onDragEnd?.();
+                        // Проверяем, было ли движение или длительное удержание
+                        const dragDuration = Date.now() - draggingEvent.startTime;
+                        const hasMoved = draggingEvent.hasMoved;
+                        const wasDrag = hasMoved || dragDuration > 300;
                         
-                        const touch = e.changedTouches[0];
-                        const container = containerRef.current;
-                        const rect = container.getBoundingClientRect();
-                        const touchX = touch.clientX - rect.left;
-                        const touchY = touch.clientY - rect.top + container.scrollTop;
-                        
-                        // Вычисляем позицию верхнего края элемента: позиция пальца минус смещение
-                        const newTop = touchY - draggingEvent.offsetY;
-                        
-                        // Определяем день недели на основе X координаты с учетом смещения
-                        const containerWidth = rect.width;
-                        const dayWidth = containerWidth / 7;
-                        // Вычисляем позицию левого края элемента: позиция пальца минус смещение
-                        const eventLeftPx = touchX - draggingEvent.offsetX;
-                        const newDayIndex = Math.max(0, Math.min(6, Math.floor(eventLeftPx / dayWidth)));
-                        const targetDay = weekDates[newDayIndex];
-                        
-                        // Вычисляем новое время на основе верхнего края элемента (1 пиксель = 1 минута)
-                        const newMinutes = Math.max(0, Math.min(1440, Math.round(newTop)));
-                        const newStartTime = new Date(targetDay);
-                        newStartTime.setHours(0, newMinutes, 0, 0);
-                        
-                        const newEndTime = new Date(newStartTime.getTime() + draggingEvent.duration);
-                        
-                        onEventMove(event.id, newStartTime, newEndTime);
-                        setDraggingEvent(null);
-                        
-                        // Включаем свайп недели обратно
-                        onDragEnd?.();
-                        
-                        // Помечаем, что только что было перетаскивание
-                        const eventElement = e.currentTarget as HTMLElement;
-                        eventElement.setAttribute('data-just-dragged', 'true');
-                        setTimeout(() => {
-                          eventElement.removeAttribute('data-just-dragged');
-                        }, 100);
+                        if (wasDrag) {
+                          // Это было перетаскивание
+                          const touch = e.changedTouches[0];
+                          const container = containerRef.current;
+                          const rect = container.getBoundingClientRect();
+                          const touchX = touch.clientX - rect.left;
+                          const touchY = touch.clientY - rect.top + container.scrollTop;
+                          
+                          // Вычисляем позицию верхнего края элемента: позиция пальца минус смещение
+                          const newTop = touchY - draggingEvent.offsetY;
+                          
+                          // Определяем день недели на основе X координаты с учетом смещения
+                          const containerWidth = rect.width;
+                          const dayWidth = containerWidth / 7;
+                          // Вычисляем позицию левого края элемента: позиция пальца минус смещение
+                          const eventLeftPx = touchX - draggingEvent.offsetX;
+                          const newDayIndex = Math.max(0, Math.min(6, Math.floor(eventLeftPx / dayWidth)));
+                          const targetDay = weekDates[newDayIndex];
+                          
+                          // Вычисляем новое время на основе верхнего края элемента (1 пиксель = 1 минута)
+                          const newMinutes = Math.max(0, Math.min(1440, Math.round(newTop)));
+                          const newStartTime = new Date(targetDay);
+                          newStartTime.setHours(0, newMinutes, 0, 0);
+                          
+                          const newEndTime = new Date(newStartTime.getTime() + draggingEvent.duration);
+                          
+                          onEventMove(event.id, newStartTime, newEndTime);
+                          
+                          // Помечаем, что только что было перетаскивание
+                          const eventElement = e.currentTarget as HTMLElement;
+                          eventElement.setAttribute('data-just-dragged', 'true');
+                          setTimeout(() => {
+                            eventElement.removeAttribute('data-just-dragged');
+                          }, 500);
+                          
+                          setDraggingEvent(null);
+                          onDragEnd?.();
+                        } else {
+                          // Если не было движения - это клик
+                          setDraggingEvent(null);
+                          onDragEnd?.();
+                          if (onEventClick) {
+                            onEventClick(event);
+                          }
+                        }
                         
                         e.stopPropagation();
                       };
@@ -451,7 +476,9 @@ export function WeekView({ date, events, onEventClick, onDateClick, onEventMove,
                             cursor: onEventMove ? 'move' : 'pointer',
                             opacity: isDragging ? 0.5 : 1,
                             touchAction: 'none',
-                            zIndex: isDragging ? 1000 : 'auto'
+                            zIndex: isDragging ? 1000 : 'auto',
+                            userSelect: isDragging ? 'none' : 'auto',
+                            WebkitUserSelect: isDragging ? 'none' : 'auto'
                           }}
                           onClick={(e) => {
                             // Предотвращаем клик сразу после drag

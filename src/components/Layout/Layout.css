@@ -59,7 +59,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 20px;
-  padding-bottom: calc(var(--nav-height) + var(--safe-area-bottom) + 30px);
+  padding-bottom: calc(var(--nav-height) + var(--safe-area-bottom));
 }
 
 /* Стили для навигации перенесены в Navigation.css */
